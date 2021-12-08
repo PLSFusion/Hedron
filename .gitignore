@@ -1,0 +1,12 @@
+# VS Code
+.vscode
+
+# General
+node_modules
+package-lock.json
+
+# Hardhat
+abi
+artifacts
+cache
+docs
