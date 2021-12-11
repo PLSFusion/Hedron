@@ -1,28 +1,42 @@
 // SPDX-License-Identifier: UNLICENSED
+
 pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./HEXStakeInstance.sol";
 
-contract HEXStakeInstanceManager is ERC721Enumerable {
+import "../rarible/royalties/contracts/impl/RoyaltiesV2Impl.sol";
+import "../rarible/royalties/contracts/LibRoyaltiesV2.sol";
+
+contract HEXStakeInstanceManager is ERC721Enumerable, RoyaltiesV2Impl {
 
     using Counters for Counters.Counter;
 
-    Counters.Counter              private          _tokenIds;
-    address                       private          _creator;
-    address                       public           whoami;
-    mapping(address => uint256)   public           hBalance;
-    mapping(address => address[]) public           hsiLists;
-    mapping(uint256 => address)   public           hsiToken;
+    bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
+    uint96 private constant _hsimRoyaltyBasis = 250; // Rarible V2 royalty basis
+    
+    Counters.Counter private _tokenIds;
+    address          private _creator;
+    HEX              private _hx;
+    address          private _hxAddress;
+    
+    address                       public  whoami;
+    mapping(address => uint256)   public  hexBalance;
+    mapping(address => address[]) public  hsiLists;
+    mapping(uint256 => address)   public  hsiToken;
  
-    constructor() ERC721("HEX Stake Instance", "HSI") {
+    constructor(address hexAddress) ERC721("HEX Stake Instance", "HSI") {
         /* While _creator could technically be considered an admin
            key, it is set at creation to the address of the parent
            contract as to restrict access to certain functions that
            only the parent contract should be able to call */ 
         _creator = msg.sender;
         whoami = address(this);
+
+        // set HEX contract address and launch time
+        _hx = HEX(payable(hexAddress));
+        _hxAddress = hexAddress;
     }
 
     function _baseURI()
@@ -32,7 +46,7 @@ contract HEXStakeInstanceManager is ERC721Enumerable {
         override
         returns (string memory)
     {
-        return "https://hedron.loan/api/hsi/";
+        return "https://hedron.loans/api/hsi/";
     }
 
     /**
@@ -89,6 +103,37 @@ contract HEXStakeInstanceManager is ERC721Enumerable {
                           isLoaned);
     }
 
+    // Internal NFT Marketplace Glue
+
+    /** @dev Sets the Rarible V2 royalties on a specific token
+     *  @param tokenId Unique ID of the HSI NFT token.
+     */
+    function _setRoyalties(
+        uint256 tokenId
+    )
+        internal
+    {
+        LibPart.Part[] memory _royalties = new LibPart.Part[](1);
+        _royalties[0].value = _hsimRoyaltyBasis;
+        _royalties[0].account = payable(_hdrnPlungeAddress);
+        _saveRoyalties(tokenId, _royalties);
+    }
+
+    /**
+     * @dev Retreives the number of HSI elements in an addresses HSI list.
+     * @param user Address to retrieve the HSI list for.
+     * @return The number of HSI elements found within the HSI list. 
+     */
+    function hsiCount(
+        address user
+    )
+        external
+        view
+        returns (uint256)
+    {
+        return hsiLists[user].length;
+    }
+
     /**
      * @dev Transfers HEX ERC20 tokens from the sender's address to this contract's address and credits the sender.
      * @param amount Number of HEX ERC20 tokens to be transfered.
@@ -98,11 +143,11 @@ contract HEXStakeInstanceManager is ERC721Enumerable {
         returns(uint256)
     { 
         require(_hx.transferFrom(msg.sender, whoami, amount),
-            "HSIM: HEX transfer from message sender to HSIM failed.");
+            "HSIM: HEX transfer from message sender to HSIM failed");
 
-        hBalance[msg.sender] += amount;
+        hexBalance[msg.sender] += amount;
 
-        return hBalance[msg.sender];
+        return hexBalance[msg.sender];
     }
 
     /**
@@ -113,15 +158,15 @@ contract HEXStakeInstanceManager is ERC721Enumerable {
         external
         returns(uint256)
     { 
-        require(amount <= hBalance[msg.sender],
-            "HSIM: Insufficient HEX to facilitate withdrawl.");
+        require(amount <= hexBalance[msg.sender],
+            "HSIM: Insufficient HEX to facilitate withdrawl");
 
         require(_hx.transfer(msg.sender, amount),
-            "HSIM: HEX transfer from HSIM to message sender failed.");
+            "HSIM: HEX transfer from HSIM to message sender failed");
 
-        hBalance[msg.sender] -= amount;
+        hexBalance[msg.sender] -= amount;
 
-        return hBalance[msg.sender];
+        return hexBalance[msg.sender];
     }
 
     /**
@@ -133,18 +178,18 @@ contract HEXStakeInstanceManager is ERC721Enumerable {
         external
         returns(address)
     {
-        require(amount <= hBalance[msg.sender],
-            "HSIM: Insufficient HEX to facilitate stake.");
+        require(amount <= hexBalance[msg.sender],
+            "HSIM: Insufficient HEX to facilitate stake");
 
         address[] storage hsiList = hsiLists[msg.sender];
 
-        HEXStakeInstance hsi = new HEXStakeInstance();
+        HEXStakeInstance hsi = new HEXStakeInstance(_hxAddress);
         address hsiAddress = hsi.whoami();
 
         require(_hx.transfer(hsiAddress, amount),
-            "HSIM: HEX transfer from HSIM to HSI failed.");
+            "HSIM: HEX transfer from HSIM to HSI failed");
 
-        hBalance[msg.sender] -= amount;
+        hexBalance[msg.sender] -= amount;
 
         hsiList.push(hsiAddress);
         hsi.initialize(length);
@@ -168,7 +213,7 @@ contract HEXStakeInstanceManager is ERC721Enumerable {
                 ShareCache memory share = _hsiLoad(hsi);
 
                 require (share._isLoaned == false,
-                    "HSIM: Cannot call stakeEnd against a loaned stake.");
+                    "HSIM: Cannot call stakeEnd against a loaned stake");
 
                 hsi.destroy();
 
@@ -176,9 +221,9 @@ contract HEXStakeInstanceManager is ERC721Enumerable {
 
                 if (hsiBalance > 0) {
                     require(_hx.transferFrom(hsiAddress, address(this), hsiBalance),
-                        "HSIM: HEX transfer from HSI to HSIM failed.");
+                        "HSIM: HEX transfer from HSI to HSIM failed");
 
-                    hBalance[msg.sender] += hsiBalance;
+                    hexBalance[msg.sender] += hsiBalance;
                 }
 
                 _pruneHSI(hsiList, i);
@@ -202,12 +247,20 @@ contract HEXStakeInstanceManager is ERC721Enumerable {
 
         for(uint256 i = 0; i < hsiList.length; i++) {
             if (hsiList[i] == hsiAddress) {
+                HEXStakeInstance hsi = HEXStakeInstance(hsiAddress);
+                ShareCache memory share = _hsiLoad(hsi);
+
+                require (share._isLoaned == false,
+                    "HSIM: Cannot tokenize a loaned stake");
+
                 _tokenIds.increment();
 
                 uint256 newTokenId = _tokenIds.current();
 
                 _mint(msg.sender, newTokenId);
                 hsiToken[newTokenId] = hsiAddress;
+
+                _setRoyalties(newTokenId);
 
                 _pruneHSI(hsiList, i);
 
@@ -227,7 +280,7 @@ contract HEXStakeInstanceManager is ERC721Enumerable {
         returns(address)
     {
         require(ownerOf(tokenId) == msg.sender,
-            "HSIM: Detokenization requires token ownership.");
+            "HSIM: Detokenization requires token ownership");
 
         address hsiAddress = hsiToken[tokenId];
         address[] storage hsiList = hsiLists[msg.sender];
@@ -242,17 +295,17 @@ contract HEXStakeInstanceManager is ERC721Enumerable {
 
     /**
      * @dev Updates the share data of a HEX stake instance (HSI) contract.
-     * @param owner Address of the HSI contract owner.
+     * @param holder Address of the HSI contract owner.
      * @param hsiAddress Address of the HSI contract to be updated.
      * @param share Updated share data in the form of a ShareCache struct.
      */
-    function hsiUpdate (address owner, address hsiAddress, ShareCache memory share)
+    function hsiUpdate (address holder, address hsiAddress, ShareCache memory share)
         external
     {
         require(msg.sender == _creator,
-            "HSIM: Caller must be contract creator.");
+            "HSIM: Caller must be contract creator");
 
-        address[] storage hsiList = hsiLists[owner];
+        address[] storage hsiList = hsiLists[holder];
 
         for(uint256 i = 0; i < hsiList.length; i++) {
             if (hsiList[i] == hsiAddress) {
@@ -264,18 +317,18 @@ contract HEXStakeInstanceManager is ERC721Enumerable {
 
     /**
      * @dev Transfers ownership of a HEX stake instance (HSI) contract to a new address.
-     * @param currentOwner Address to transfer the HSI contract from.
+     * @param currentHolder Address to transfer the HSI contract from.
      * @param hsiAddress Address of the HSI contract to be transfered.
-     * @param newOwner Address to transfer to HSI contract to.
+     * @param newHolder Address to transfer to HSI contract to.
      */
-    function hsiTransfer (address currentOwner, address hsiAddress, address newOwner)
+    function hsiTransfer (address currentHolder, address hsiAddress, address newHolder)
         external
     {
         require(msg.sender == _creator,
-            "HSIM: Caller must be contract creator.");
+            "HSIM: Caller must be contract creator");
 
-        address[] storage hsiListCurrent = hsiLists[currentOwner];
-        address[] storage hsiListNew = hsiLists[newOwner];
+        address[] storage hsiListCurrent = hsiLists[currentHolder];
+        address[] storage hsiListNew = hsiLists[newHolder];
 
         for(uint256 i = 0; i < hsiListCurrent.length; i++) {
             if (hsiListCurrent[i] == hsiAddress) {
@@ -283,5 +336,69 @@ contract HEXStakeInstanceManager is ERC721Enumerable {
                 _pruneHSI(hsiListCurrent, i);
             }
         }
+    }
+
+    // External NFT Marketplace Glue
+
+    /**
+     * @dev Implements ERC2981 royalty functionality. We just read the royalty data from
+     *      the Rarible V2 implementation. 
+     * @param tokenId Unique ID of the HSI NFT token.
+     * @param salePrice Price the HSI NFT token was sold for.
+     * @return receiver address to send the royalties to as well as the royalty amount.
+     */
+    function royaltyInfo(
+        uint256 tokenId,
+        uint256 salePrice
+    )
+        external
+        view
+        returns (address receiver, uint256 royaltyAmount)
+    {
+        LibPart.Part[] memory _royalties = royalties[tokenId];
+        
+        if (_royalties.length > 0) {
+            return (_royalties[0].account, (salePrice * _royalties[0].value) / 10000);
+        }
+
+        return (address(0), 0);
+    }
+
+    /**
+     * @dev returns _hdrnFlowAddress, needed for some NFT marketplaces. This is not
+            an admin key.
+     * @return _hdrnFlowAddress
+     */
+    function owner()
+        public
+        pure
+        returns (address) 
+    {
+        return _hdrnPlungeAddress;
+    }
+
+    /**
+     * @dev Adds Rarible V2 and ERC2981 interface support.
+     * @param interfaceId Unique contract interface identifier.
+     * @return true if the interface is supported, false if not.
+     */
+    function supportsInterface(
+        bytes4 interfaceId
+    )
+        public
+        view
+        virtual
+        override(ERC721Enumerable)
+        returns (bool)
+    {
+        if (interfaceId == LibRoyaltiesV2._INTERFACE_ID_ROYALTIES) {
+            return true;
+        }
+
+        if (interfaceId == _INTERFACE_ID_ERC2981) {
+            return true;
+        }
+
+        return super.supportsInterface(interfaceId);
     }
 }

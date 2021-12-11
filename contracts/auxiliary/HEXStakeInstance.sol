@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: UNLICENSED
+
 pragma solidity 0.8.4;
 
 import "../declarations/Internal.sol";
 
 contract HEXStakeInstance {
     
+    HEX        private _hx;
     address    private _creator;
     address    public  whoami;
     uint256    public  created;
     ShareStore public  share;
 
-    constructor() {
+    constructor(address hexAddress) {
         /* While _creator could technically be considered an admin
            key, it is set at creation to the address of the parent
            contract as to restrict access to certain functions that
@@ -18,21 +20,25 @@ contract HEXStakeInstance {
         _creator = msg.sender;
         created  = block.timestamp;
         whoami   = address(this);
+
+        // set HEX contract address and launch time
+        _hx = HEX(payable(hexAddress));
     }
 
     /**
-     * @dev Creates a new HEX stake using all HEX ERC20 tokens assigned to this contract's address.
+     * @dev Creates a new HEX stake using all HEX ERC20 tokens assigned
+     *      to this contract's address.
      * @param stakeLength Number of days the HEX ERC20 tokens will be staked.
      */
     function initialize(uint256 stakeLength) external {
         uint256 hexBalance = _hx.balanceOf(whoami);
 
         require(msg.sender == _creator,
-            "HSI: Caller must be contract creator.");
+            "HSI: Caller must be contract creator");
         require(share.stake.stakedDays == 0,
-            "HSI: Initialization already performed.");
+            "HSI: Initialization already performed");
         require(hexBalance > 0,
-            "HSI: Initialization requires non-zero HEX balance.");
+            "HSI: Initialization requires non-zero HEX balance");
 
         _hx.stakeStart(
             hexBalance,
@@ -50,11 +56,12 @@ contract HEXStakeInstance {
     }
 
     /**
-     * @dev Calls the HEX function "stakeGoodAccounting" against this contract's address.
+     * @dev Calls the HEX function "stakeGoodAccounting" against this
+     *      contract's address.
      */
     function goodAccounting() external {
         require(share.stake.stakedDays > 0,
-            "HSI: Initialization not yet performed.");
+            "HSI: Initialization not yet performed");
 
         _hx.stakeGoodAccounting(whoami, 0, share.stake.stakeId);
 
@@ -69,13 +76,14 @@ contract HEXStakeInstance {
     }
 
     /**
-     * @dev Ends the HEX stake, transfers HEX ERC20 tokens to the creator address, and self-destructs this contract.
+     * @dev Ends the HEX stake, transfers HEX ERC20 tokens to the creator
+            address, and self-destructs this contract.
      */
     function destroy() external {
         require(msg.sender == _creator,
-            "HSI: Caller must be contract creator.");
+            "HSI: Caller must be contract creator");
         require(share.stake.stakedDays > 0,
-            "HSI: Initialization not yet performed.");
+            "HSI: Initialization not yet performed");
 
         _hx.stakeEnd(0, share.stake.stakeId);
         
@@ -95,7 +103,7 @@ contract HEXStakeInstance {
      */
     function update(ShareCache memory _share) external {
         require(msg.sender == _creator,
-            "HSI: Caller must be contract creator.");
+            "HSI: Caller must be contract creator");
 
         share.mintedDays   = uint16(_share._mintedDays);
         share.launchBonus  = uint8 (_share._launchBonus);

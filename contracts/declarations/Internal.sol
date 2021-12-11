@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
+
 pragma solidity 0.8.4;
 
 import "./External.sol";
@@ -25,5 +26,6 @@ struct ShareCache {
     bool     _isLoaned;
 }
 
-address constant _hdrnSourceAddress = address(0); //TODO CHANGE ME
-uint256 constant _hdrnLaunch        = 1640386800; // TODO CHANGE ME
+address constant _hdrnSourceAddress = address(1); //TODO CHANGE ME BEFORE DEPLOYMENT
+address constant _hdrnPlungeAddress = address(1); //TODO CHANGE ME BEFORE DEPLOYMENT
+uint256 constant _hdrnLaunch        = 1640386800; //TODO CHANGE ME BEFORE DEPLOYMENT
