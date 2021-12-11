@@ -115,7 +115,7 @@ contract HEXStakeInstanceManager is ERC721Enumerable, RoyaltiesV2Impl {
     {
         LibPart.Part[] memory _royalties = new LibPart.Part[](1);
         _royalties[0].value = _hsimRoyaltyBasis;
-        _royalties[0].account = payable(_hdrnPlungeAddress);
+        _royalties[0].account = payable(_hdrnFlowAddress);
         _saveRoyalties(tokenId, _royalties);
     }
 
@@ -374,7 +374,7 @@ contract HEXStakeInstanceManager is ERC721Enumerable, RoyaltiesV2Impl {
         pure
         returns (address) 
     {
-        return _hdrnPlungeAddress;
+        return _hdrnFlowAddress;
     }
 
     /**
