@@ -28,4 +28,4 @@ Documentation and ABI can be found in the `./docs` and `./abi` directories respe
 
 Tests can be run by executing...
 
-    npx hardhat compile
+    npx hardhat test
