@@ -68,7 +68,7 @@ describe("Hedron", function () {
     ).to.be.revertedWith("HDRN: Contract not yet active");
 
     // move to Hedron launch day
-    await network.provider.send("evm_mine", [1640386800]);
+    await network.provider.send("evm_mine", [1639263600]);
   });
 
   it("Should pass native HEX stake minting sanity checks.", async function () {

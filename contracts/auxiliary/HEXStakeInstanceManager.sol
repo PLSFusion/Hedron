@@ -30,7 +30,7 @@ contract HEXStakeInstanceManager is ERC721Enumerable, RoyaltiesV2Impl {
         /* While _creator could technically be considered an admin
            key, it is set at creation to the address of the parent
            contract as to restrict access to certain functions that
-           only the parent contract should be able to call */ 
+           only the parent contract should be able to call */
         _creator = msg.sender;
         whoami = address(this);
 
@@ -48,6 +48,22 @@ contract HEXStakeInstanceManager is ERC721Enumerable, RoyaltiesV2Impl {
     {
         return "https://hedron.loans/api/hsi/";
     }
+
+    event HSIStart(
+        address indexed instanceAddr,
+        address indexed stakerAddr
+    );
+
+    event HSIEnd(
+        address indexed instanceAddr,
+        address indexed stakerAddr
+    );
+
+    event HSITransfer(
+        address indexed instanceAddr,
+        address indexed oldStakerAddr,
+        address indexed newStakerAddr
+    );
 
     /**
      * @dev Removes a HEX stake instance (HSI) contract address from an address mapping.
@@ -194,6 +210,8 @@ contract HEXStakeInstanceManager is ERC721Enumerable, RoyaltiesV2Impl {
         hsiList.push(hsiAddress);
         hsi.initialize(length);
 
+        emit HSIStart(hsiAddress, msg.sender);
+
         return hsiAddress;
     }
 
@@ -217,10 +235,12 @@ contract HEXStakeInstanceManager is ERC721Enumerable, RoyaltiesV2Impl {
 
                 hsi.destroy();
 
+                emit HSIEnd(hsiAddress, msg.sender);
+
                 uint256 hsiBalance = _hx.balanceOf(hsiAddress);
 
                 if (hsiBalance > 0) {
-                    require(_hx.transferFrom(hsiAddress, address(this), hsiBalance),
+                    require(_hx.transferFrom(hsiAddress, whoami, hsiBalance),
                         "HSIM: HEX transfer from HSI to HSIM failed");
 
                     hexBalance[msg.sender] += hsiBalance;
@@ -334,6 +354,8 @@ contract HEXStakeInstanceManager is ERC721Enumerable, RoyaltiesV2Impl {
             if (hsiListCurrent[i] == hsiAddress) {
                 hsiListNew.push(hsiAddress);
                 _pruneHSI(hsiListCurrent, i);
+
+                emit HSITransfer(hsiAddress, currentHolder, newHolder);
             }
         }
     }

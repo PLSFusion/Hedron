@@ -45,6 +45,24 @@ module.exports = {
     hardhat: {
       initialDate: "2019-12-02"
     },
+    pulsetestv1: {
+      url: "https://rpc.testnet.pulsechain.com",
+      chainId: 940,
+      // these are publicly known, just for testing
+      accounts: [ "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+                  "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
+                  "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a"
+      ]
+    },
+    pulsetestv2: {
+      url: "https://rpc.v2.testnet.pulsechain.com",
+      chainId: 940,
+      // these are publicly known, just for testing
+      accounts: [ "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+                  "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
+                  "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a"
+      ]
+    }
   },
   abiExporter: {
     clear: true,
