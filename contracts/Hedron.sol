@@ -588,11 +588,16 @@ contract Hedron is ERC20 {
                 // loan to mint ratio bonus does not apply here
 
                 if (payout > 0) {
+                    DailyDataCache memory day;
+                    DailyDataStore storage dayStore = dailyDataList[_currentDay()];
+
+                    _dailyDataLoad(dayStore, day);
+            
                     _mint(_hdrnSourceAddress, payout);
+            
+                    day._dayMintedTotal += payout;
+                    _dailyDataUpdate(dayStore, day);
                 }
-                
-                mintDays = 0;
-                payout = 0;
 
                 // it's not safe to prune just yet
                 delete shareList[i];
@@ -749,6 +754,56 @@ contract Hedron is ERC20 {
         _hsim.hsiUpdate(msg.sender, hsiAddress, share);
 
         _dailyDataUpdate(dayStore, day);
+    }
+
+    /**
+     * @dev Mints unrealized Hedron ERC20 (HDRN) tokens to the source address using a HEX stake instance (HSI) backing.
+     * @param hsiIndex Index of the HSI contract address in the sender's HSI list (see hsiLists -> HEXStakeInstanceManager.sol).
+     * @param hsiAddress Address of the HSI contract which coinsides with the index.
+     */
+    function mintInstancedUnrealized(
+        uint256 hsiIndex,
+        address hsiAddress
+    ) 
+        external
+    {
+        require(msg.sender == hsim,
+            "HSIM: Caller must be HSIM");
+
+        address _hsiAddress = _hsim.hsiLists(msg.sender, hsiIndex);
+        require(hsiAddress == _hsiAddress,
+            "HDRN: HSI index address mismatch");
+
+        ShareCache memory share = _hsiLoad(HEXStakeInstance(hsiAddress));
+
+        uint256 mintDays = 0;
+        uint256 payout = 0;
+
+        // unrealized tokens go to the source address
+        mintDays = share._stake.stakedDays - share._mintedDays;
+        payout = share._stake.stakeShares * mintDays;
+                
+        // launch phase bonus
+        if (share._launchBonus > 0) {
+            uint256 bonus = _calcBonus(share._launchBonus, payout);
+            if (bonus > 0) {
+                payout += bonus;
+            }
+        }
+                
+        // loan to mint ratio bonus does not apply here
+
+        if (payout > 0) {
+            DailyDataCache memory day;
+            DailyDataStore storage dayStore = dailyDataList[_currentDay()];
+
+            _dailyDataLoad(dayStore, day);
+
+            _mint(_hdrnSourceAddress, payout);
+            
+            day._dayMintedTotal += payout;
+            _dailyDataUpdate(dayStore, day);
+        }
     }
 
     /**

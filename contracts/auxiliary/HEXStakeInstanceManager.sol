@@ -5,6 +5,7 @@ pragma solidity 0.8.4;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./HEXStakeInstance.sol";
+import "../Hedron.sol";
 
 import "../rarible/royalties/contracts/impl/RoyaltiesV2Impl.sol";
 import "../rarible/royalties/contracts/LibRoyaltiesV2.sol";
@@ -14,7 +15,7 @@ contract HEXStakeInstanceManager is ERC721Enumerable, RoyaltiesV2Impl {
     using Counters for Counters.Counter;
 
     bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
-    uint96 private constant _hsimRoyaltyBasis = 250; // Rarible V2 royalty basis
+    uint96 private constant _hsimRoyaltyBasis = 369; // Rarible V2 royalty basis
     
     Counters.Counter private _tokenIds;
     address          private _creator;
@@ -50,19 +51,31 @@ contract HEXStakeInstanceManager is ERC721Enumerable, RoyaltiesV2Impl {
     }
 
     event HSIStart(
-        address indexed instanceAddr,
-        address indexed stakerAddr
+        address indexed instance,
+        address indexed staker
     );
 
     event HSIEnd(
-        address indexed instanceAddr,
-        address indexed stakerAddr
+        address indexed instance,
+        address indexed staker
     );
 
     event HSITransfer(
-        address indexed instanceAddr,
-        address indexed oldStakerAddr,
-        address indexed newStakerAddr
+        address indexed instance,
+        address indexed oldStaker,
+        address indexed newStaker
+    );
+
+    event HSITokenize(
+        uint256 indexed tokenId,
+        address indexed instance,
+        address indexed staker
+    );
+
+    event HSIDetokenize(
+        uint256 indexed tokenId,
+        address indexed instance,
+        address indexed staker
     );
 
     /**
@@ -233,6 +246,9 @@ contract HEXStakeInstanceManager is ERC721Enumerable, RoyaltiesV2Impl {
                 require (share._isLoaned == false,
                     "HSIM: Cannot call stakeEnd against a loaned stake");
 
+                Hedron hedron = Hedron(_creator);
+                hedron.mintInstancedUnrealized(i, hsiAddress);
+
                 hsi.destroy();
 
                 emit HSIEnd(hsiAddress, msg.sender);
@@ -284,6 +300,8 @@ contract HEXStakeInstanceManager is ERC721Enumerable, RoyaltiesV2Impl {
 
                 _pruneHSI(hsiList, i);
 
+                emit HSITokenize(newTokenId, hsiAddress, msg.sender);
+
                 return newTokenId;
             }
         }
@@ -309,6 +327,8 @@ contract HEXStakeInstanceManager is ERC721Enumerable, RoyaltiesV2Impl {
         hsiToken[tokenId] = address(0);
 
         _burn(tokenId);
+
+        emit HSIDetokenize(tokenId, hsiAddress, msg.sender);
 
         return(hsiAddress);
     }
