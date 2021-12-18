@@ -247,7 +247,7 @@ contract HEXStakeInstanceManager is ERC721Enumerable, RoyaltiesV2Impl {
                     "HSIM: Cannot call stakeEnd against a loaned stake");
 
                 Hedron hedron = Hedron(_creator);
-                hedron.mintInstancedUnrealized(i, hsiAddress);
+                hedron.mintInstancedUnrealized(i, hsiAddress, msg.sender);
 
                 hsi.destroy();
 

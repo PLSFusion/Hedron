@@ -763,14 +763,15 @@ contract Hedron is ERC20 {
      */
     function mintInstancedUnrealized(
         uint256 hsiIndex,
-        address hsiAddress
+        address hsiAddress,
+        address hsiEnderAddress
     ) 
         external
     {
         require(msg.sender == hsim,
             "HSIM: Caller must be HSIM");
 
-        address _hsiAddress = _hsim.hsiLists(msg.sender, hsiIndex);
+        address _hsiAddress = _hsim.hsiLists(hsiEnderAddress, hsiIndex);
         require(hsiAddress == _hsiAddress,
             "HDRN: HSI index address mismatch");
 

@@ -496,7 +496,7 @@ describe("Hedron", function () {
 
     // test rarible royalties
     royalties = await hsim.getRaribleV2Royalties(1);
-    expect(royalties[0].value).equals(250);
+    expect(royalties[0].value).equals(369);
 
     // should fail as non owner
     await expect(hsim.connect(addr1).hexStakeDetokenize(1)
@@ -507,11 +507,11 @@ describe("Hedron", function () {
 
     // test rarible royalties after transfer
     royalties = await hsim.getRaribleV2Royalties(1);
-    expect(royalties[0].value).equals(250);
+    expect(royalties[0].value).equals(369);
 
     // make sure ERC2981 also works
     royalties = await hsim.royaltyInfo(1, 1000);
-    expect(royalties.royaltyAmount).equals(25);
+    expect(royalties.royaltyAmount).equals(36);
 
     // detokenize
     await hsim.connect(addr1).hexStakeDetokenize(1);
