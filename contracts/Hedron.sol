@@ -1062,9 +1062,21 @@ contract Hedron is ERC20 {
 
         uint256 loanTermPaid      = share._paymentsMade * _hdrnLoanPaymentWindow;
         uint256 loanTermRemaining = share._loanedDays - loanTermPaid;
-        uint256 outstandingDays   = _currentDay() - share._loanStart - loanTermPaid;
-        uint256 principal         = share._stake.stakeShares * loanTermRemaining;
-        uint256 interest          = (principal * (share._interestRate * outstandingDays)) / _hdrnLoanInterestResolution;
+        uint256 outstandingDays   = 0;
+        uint256 principal         = 0;
+        uint256 interest          = 0;
+        
+        // user has made payments ahead of _currentDay(), no interest
+        if (_currentDay()- share._loanStart < loanTermPaid) {
+            principal = share._stake.stakeShares * loanTermRemaining;
+        }
+
+        // only calculate interest to the current Hedron day
+        else {
+            outstandingDays = _currentDay() - share._loanStart - loanTermPaid;
+            principal       = share._stake.stakeShares * loanTermRemaining;
+            interest        = (principal * (share._interestRate * outstandingDays)) / _hdrnLoanInterestResolution;
+        }
 
         return(principal, interest);
     }
@@ -1247,11 +1259,21 @@ contract Hedron is ERC20 {
 
         uint256 loanTermPaid      = share._paymentsMade * _hdrnLoanPaymentWindow;
         uint256 loanTermRemaining = share._loanedDays - loanTermPaid;
-        uint256 outstandingDays   = _currentDay() - share._loanStart - loanTermPaid;
-        uint256 principal         = share._stake.stakeShares * loanTermRemaining;
+        uint256 outstandingDays   = 0;
+        uint256 principal         = 0;
+        uint256 interest          = 0;
+
+        // user has made payments ahead of _currentDay(), no interest
+        if (_currentDay()- share._loanStart < loanTermPaid) {
+            principal = share._stake.stakeShares * loanTermRemaining;
+        }
 
         // only calculate interest to the current Hedron day
-        uint256 interest = (principal * (share._interestRate * outstandingDays)) / _hdrnLoanInterestResolution;
+        else {
+            outstandingDays = _currentDay() - share._loanStart - loanTermPaid;
+            principal       = share._stake.stakeShares * loanTermRemaining;
+            interest        = (principal * (share._interestRate * outstandingDays)) / _hdrnLoanInterestResolution;
+        }
 
         require (balanceOf(msg.sender) >= (principal + interest),
             "HDRN: Insufficient balance to facilitate payoff");
