@@ -28,4 +28,4 @@ struct ShareCache {
 
 address constant _hdrnSourceAddress = address(1); //TODO CHANGE ME BEFORE DEPLOYMENT
 address constant _hdrnFlowAddress   = address(1); //TODO CHANGE ME BEFORE DEPLOYMENT
-uint256 constant _hdrnLaunch        = 1639263600; //TODO CHANGE ME BEFORE DEPLOYMENT
+uint256 constant _hdrnLaunch        = 1639868400; //TODO CHANGE ME BEFORE DEPLOYMENT
