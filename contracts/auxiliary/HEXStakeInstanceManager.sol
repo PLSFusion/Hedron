@@ -2,6 +2,7 @@
 
 pragma solidity 0.8.4;
 
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./HEXStakeInstance.sol";
@@ -10,7 +11,7 @@ import "../Hedron.sol";
 import "../rarible/royalties/contracts/impl/RoyaltiesV2Impl.sol";
 import "../rarible/royalties/contracts/LibRoyaltiesV2.sol";
 
-contract HEXStakeInstanceManager is ERC721Enumerable, RoyaltiesV2Impl {
+contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
 
     using Counters for Counters.Counter;
 
@@ -49,6 +50,18 @@ contract HEXStakeInstanceManager is ERC721Enumerable, RoyaltiesV2Impl {
     {
         return "https://hedron.loans/api/hsi/";
     }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    )
+        internal
+        override(ERC721, ERC721Enumerable) 
+    {
+        super._beforeTokenTransfer(from, to, tokenId);
+    }
+
 
     event HSIStart(
         address indexed instance,
@@ -430,7 +443,7 @@ contract HEXStakeInstanceManager is ERC721Enumerable, RoyaltiesV2Impl {
         public
         view
         virtual
-        override(ERC721Enumerable)
+        override(ERC721, ERC721Enumerable)
         returns (bool)
     {
         if (interfaceId == LibRoyaltiesV2._INTERFACE_ID_ROYALTIES) {

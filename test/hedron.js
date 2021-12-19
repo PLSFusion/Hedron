@@ -79,7 +79,7 @@ describe("Hedron", function () {
     ).to.be.revertedWith("HDRN: HEX stake index id mismatch");
 
     // create a second hex stake of 100 HEX for 10 days for address 1
-    await hex.connect(addr1).stakeStart(10000000000, 10);
+    await hex.connect(addr1).stakeStart(10000000000000, 10);
     const stake2 = await hex.stakeLists(addr1.address, 1);
     
     /// test pending HEX stake
@@ -449,8 +449,17 @@ describe("Hedron", function () {
     
     expect(share.stake.stakeId).equals(expectedShare.stake.stakeId);
 
-    // make final stake
+    // make another stake, test zero interest payoff
     await hsim.connect(addr1).hexStakeStart(10000000000, 100);
+    hsiAddress3 = await hsim.hsiLists(addr1.address, 3);
+    stake3 = await hex.stakeLists(hsiAddress3, 0);
+    
+    await hedron.connect(addr1).loanInstanced(3, hsiAddress3);
+    await hedron.connect(addr1).loanPayment(3, hsiAddress3);
+    await hedron.connect(addr1).loanPayment(3, hsiAddress3);
+    await hedron.connect(addr1).loanPayoff(3, hsiAddress3);
+
+    // re-loan stake
     hsiAddress3 = await hsim.hsiLists(addr1.address, 3);
     stake3 = await hex.stakeLists(hsiAddress3, 0);
 
