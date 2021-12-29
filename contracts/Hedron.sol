@@ -709,7 +709,7 @@ contract Hedron is ERC20 {
         // launch phase bonus
         if (share._launchBonus > 0) {
             launchBonus = share._launchBonus;
-            uint256 bonus = _calcBonus(share._launchBonus, payout);
+            uint256 bonus = _calcBonus(launchBonus, payout);
             if (bonus > 0) {
                 // send bonus copy to the source address
                 _mint(_hdrnSourceAddress, bonus);
@@ -748,6 +748,7 @@ contract Hedron is ERC20 {
             );
         }
 
+        share._mintedDays += mintDays;
         day._dayMintedTotal += payout;
 
         // update HEX stake instance
@@ -1074,6 +1075,11 @@ contract Hedron is ERC20 {
         // only calculate interest to the current Hedron day
         else {
             outstandingDays = _currentDay() - share._loanStart - loanTermPaid;
+
+            if (outstandingDays > loanTermRemaining) {
+                outstandingDays = loanTermRemaining;
+            }
+
             principal       = share._stake.stakeShares * loanTermRemaining;
             interest        = (principal * (share._interestRate * outstandingDays)) / _hdrnLoanInterestResolution;
         }
@@ -1264,13 +1270,18 @@ contract Hedron is ERC20 {
         uint256 interest          = 0;
 
         // user has made payments ahead of _currentDay(), no interest
-        if (_currentDay()- share._loanStart < loanTermPaid) {
+        if (_currentDay() - share._loanStart < loanTermPaid) {
             principal = share._stake.stakeShares * loanTermRemaining;
         }
 
         // only calculate interest to the current Hedron day
         else {
             outstandingDays = _currentDay() - share._loanStart - loanTermPaid;
+
+            if (outstandingDays > loanTermRemaining) {
+                outstandingDays = loanTermRemaining;
+            }
+
             principal       = share._stake.stakeShares * loanTermRemaining;
             interest        = (principal * (share._interestRate * outstandingDays)) / _hdrnLoanInterestResolution;
         }
@@ -1342,11 +1353,15 @@ contract Hedron is ERC20 {
         uint256 outstandingDays   = _currentDay() - share._loanStart - loanTermPaid;
         uint256 principal         = share._stake.stakeShares * loanTermRemaining;
 
-        // only calculate interest to the current Hedron day
-        uint256 interest = (principal * (share._interestRate * outstandingDays)) / _hdrnLoanInterestResolution;
-
         require (outstandingDays >= _hdrnLoanDefaultThreshold,
             "HDRN: Cannot liquidate a loan not in default");
+
+        if (outstandingDays > loanTermRemaining) {
+            outstandingDays = loanTermRemaining;
+        }
+
+        // only calculate interest to the current Hedron day
+        uint256 interest = (principal * (share._interestRate * outstandingDays)) / _hdrnLoanInterestResolution;
 
         require (balanceOf(msg.sender) >= (principal + interest),
             "HDRN: Insufficient balance to facilitate liquidation");

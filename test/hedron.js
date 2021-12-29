@@ -228,7 +228,7 @@ describe("Hedron", function () {
     expect(addr1Balance).to.equal(addr1ExpectedBalance);
 
     // create third stake
-    await hsim.connect(addr1).hexStakeStart(10000000000, 1);
+    await hsim.connect(addr1).hexStakeStart(10000000000, 10);
     hsiAddress3 = await hsim.hsiLists(addr1.address, 2);
 
     // move to next Hedron day

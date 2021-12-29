@@ -29,14 +29,12 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     mapping(uint256 => address)   public  hsiToken;
  
     constructor(address hexAddress) ERC721("HEX Stake Instance", "HSI") {
-        /* While _creator could technically be considered an admin
-           key, it is set at creation to the address of the parent
-           contract as to restrict access to certain functions that
-           only the parent contract should be able to call */
+        /* _creator is not an admin key. It is set at contsruction to be a link
+           to the parent contract. In this case Hedron */
         _creator = msg.sender;
         whoami = address(this);
 
-        // set HEX contract address and launch time
+        // set HEX contract address
         _hx = HEX(payable(hexAddress));
         _hxAddress = hexAddress;
     }
