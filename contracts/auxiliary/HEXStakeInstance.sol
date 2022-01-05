@@ -9,14 +9,12 @@ contract HEXStakeInstance {
     HEX        private _hx;
     address    private _creator;
     address    public  whoami;
-    uint256    public  created;
     ShareStore public  share;
 
     constructor(address hexAddress) {
         /* _creator is not an admin key. It is set at contsruction to be a link
            to the parent contract. In this case HSIM */
         _creator = msg.sender;
-        created  = block.timestamp;
         whoami   = address(this);
 
         // set HEX contract address

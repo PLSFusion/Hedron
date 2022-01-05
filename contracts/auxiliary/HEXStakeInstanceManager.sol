@@ -22,9 +22,8 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     address          private _creator;
     HEX              private _hx;
     address          private _hxAddress;
-    
+
     address                       public  whoami;
-    mapping(address => uint256)   public  hexBalance;
     mapping(address => address[]) public  hsiLists;
     mapping(uint256 => address)   public  hsiToken;
  
@@ -32,7 +31,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
         /* _creator is not an admin key. It is set at contsruction to be a link
            to the parent contract. In this case Hedron */
         _creator = msg.sender;
-        whoami = address(this);
+        whoami   = address(this);
 
         // set HEX contract address
         _hx = HEX(payable(hexAddress));
@@ -46,7 +45,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
         override
         returns (string memory)
     {
-        return "https://hedron.loans/api/hsi/";
+        return "https://hedron.pro/api/hsi/";
     }
 
     function _beforeTokenTransfer(
@@ -59,7 +58,6 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     {
         super._beforeTokenTransfer(from, to, tokenId);
     }
-
 
     event HSIStart(
         address indexed instance,
@@ -175,41 +173,6 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     }
 
     /**
-     * @dev Transfers HEX ERC20 tokens from the sender's address to this contract's address and credits the sender.
-     * @param amount Number of HEX ERC20 tokens to be transfered.
-     */
-    function hexDeposit (uint256 amount)
-        external
-        returns(uint256)
-    { 
-        require(_hx.transferFrom(msg.sender, whoami, amount),
-            "HSIM: HEX transfer from message sender to HSIM failed");
-
-        hexBalance[msg.sender] += amount;
-
-        return hexBalance[msg.sender];
-    }
-
-    /**
-     * @dev Transfers HEX ERC20 tokens from this contracts's address to the sender's address and debits the sender.
-     * @param amount Number of HEX ERC20 tokens to be transfered.
-     */
-    function hexWithdraw (uint256 amount)
-        external
-        returns(uint256)
-    { 
-        require(amount <= hexBalance[msg.sender],
-            "HSIM: Insufficient HEX to facilitate withdrawl");
-
-        require(_hx.transfer(msg.sender, amount),
-            "HSIM: HEX transfer from HSIM to message sender failed");
-
-        hexBalance[msg.sender] -= amount;
-
-        return hexBalance[msg.sender];
-    }
-
-    /**
      * @dev Creates a new HEX stake instance (HSI), transfers HEX ERC20 tokens to the HSI contract's address, and calls the "initialize" function.
      * @param amount Number of HEX ERC20 tokens to be staked.
      * @param length Number of days the HEX ERC20 tokens will be staked.
@@ -218,21 +181,23 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
         external
         returns(address)
     {
-        require(amount <= hexBalance[msg.sender],
+        require(amount <= _hx.balanceOf(msg.sender),
             "HSIM: Insufficient HEX to facilitate stake");
 
         address[] storage hsiList = hsiLists[msg.sender];
 
         HEXStakeInstance hsi = new HEXStakeInstance(_hxAddress);
         address hsiAddress = hsi.whoami();
-
-        require(_hx.transfer(hsiAddress, amount),
-            "HSIM: HEX transfer from HSIM to HSI failed");
-
-        hexBalance[msg.sender] -= amount;
-
         hsiList.push(hsiAddress);
+        uint256 hsiIndex = hsiList.length - 1;
+
+        require(_hx.transferFrom(msg.sender, hsiAddress, amount),
+            "HSIM: HEX transfer from message sender to HSIM failed");
+
         hsi.initialize(length);
+
+        Hedron hedron = Hedron(_creator);
+        hedron.claimInstanced(hsiIndex, hsiAddress, msg.sender);
 
         emit HSIStart(hsiAddress, msg.sender);
 
@@ -267,10 +232,8 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
                 uint256 hsiBalance = _hx.balanceOf(hsiAddress);
 
                 if (hsiBalance > 0) {
-                    require(_hx.transferFrom(hsiAddress, whoami, hsiBalance),
+                    require(_hx.transferFrom(hsiAddress, msg.sender, hsiBalance),
                         "HSIM: HEX transfer from HSI to HSIM failed");
-
-                    hexBalance[msg.sender] += hsiBalance;
                 }
 
                 _pruneHSI(hsiList, i);
@@ -423,7 +386,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
      * @return _hdrnFlowAddress
      */
     function owner()
-        public
+        external
         pure
         returns (address) 
     {

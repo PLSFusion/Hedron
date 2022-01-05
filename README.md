@@ -1,6 +1,6 @@
 # Hedron
 
-Hedron is an Ethereum / PulseChain smart contract that builds upon the HEX smart contract to provide additional functionality. For more information visit https://hedron.loans
+Hedron is a collection of Ethereum / PulseChain smart contracts that build upon the HEX smart contract to provide additional functionality. For more information visit https://hedron.pro
 
 These smart contracts are **UNLICENSED, All rights are reserved**. This repository provided for auditing, research, and interfacing purposes only. Copying these smart contracts for use on any non-testing blockchain is strictly prohibited.
 
