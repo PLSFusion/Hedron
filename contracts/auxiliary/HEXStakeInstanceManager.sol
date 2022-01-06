@@ -16,7 +16,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     using Counters for Counters.Counter;
 
     bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
-    uint96 private constant _hsimRoyaltyBasis = 369; // Rarible V2 royalty basis
+    uint96 private constant _hsimRoyaltyBasis = 100; // Rarible V2 royalty basis
     
     Counters.Counter private _tokenIds;
     address          private _creator;
@@ -165,11 +165,47 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     function hsiCount(
         address user
     )
-        external
+        public
         view
         returns (uint256)
     {
         return hsiLists[user].length;
+    }
+
+    /**
+     * @dev Wrapper function for hsiCount to allow HEX based applications to pull stake data.
+     * @param user Address to retrieve the HSI list for.
+     * @return The number of HSI elements found within the HSI list. 
+     */
+    function stakeCount(
+        address user
+    )
+        external
+        view
+        returns (uint256)
+    {
+        return hsiCount(user);
+    }
+
+        /**
+     * @dev Wrapper function for hsiLists to allow HEX based applications to pull stake data.
+     * @param user Address to retrieve the HSI list for.
+     * @return The number of HSI elements found within the HSI list. 
+     */
+    function stakeLists(
+        address user,
+        uint256 hsiIndex
+    )
+        external
+        view
+        returns (HEXStake memory)
+    {
+        address[] storage hsiList = hsiLists[user];
+
+        HEXStakeInstance hsi = HEXStakeInstance(hsiList[hsiIndex]);
+        ShareCache memory share = _hsiLoad(hsi);
+
+        return share._stake;
     }
 
     /**

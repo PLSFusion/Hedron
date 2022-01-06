@@ -78,13 +78,24 @@ describe("Hedron", function () {
     await expect(hedron.connect(addr1).mintNative(0, 0)
     ).to.be.revertedWith("HDRN: HEX stake index id mismatch");
 
-    // create a second hex stake of 100 HEX for 10 days for address 1
+    // create a second HEX stake of 100 HEX for 10 days for address 1
     await hex.connect(addr1).stakeStart(10000000000000, 10);
     const stake2 = await hex.stakeLists(addr1.address, 1);
+
+    // create a third HEX stake of 100 HEX for 1 day for address 1
+    await hex.connect(addr1).stakeStart(10000000000000, 1);
+    const stake3 = await hex.stakeLists(addr1.address, 2);
+
+    // create a fourth HEX stake of 100 HEX for 1 day for address 1
+    await hex.connect(addr1).stakeStart(10000000000000, 1);
+    const stake4 = await hex.stakeLists(addr1.address, 3);
     
-    /// test pending HEX stake
+    // test pending HEX stake
     await expect(hedron.connect(addr1).mintNative(1, stake2.stakeId)
     ).to.be.revertedWith("HDRN: cannot mint against a pending HEX stake");
+
+    // claim should still work
+    await hedron.connect(addr1).claimNative(1, stake2.stakeId);
 
     // test first stake one served day
     await hedron.connect(addr1).mintNative(0, stake1.stakeId);
@@ -115,7 +126,7 @@ describe("Hedron", function () {
     
     addr1Balance = await hedron.balanceOf(addr1.address);
     addr1ExpectedBalance = addr1ExpectedBalance.add(stake2.stakeShares);
-    addr1ExpectedBalance = addr1ExpectedBalance.add(stake2.stakeShares.mul(99).div(10));
+    addr1ExpectedBalance = addr1ExpectedBalance.add(stake2.stakeShares.mul(100).div(10));
 
     expect(addr1Balance).to.equal(addr1ExpectedBalance);
 
@@ -128,62 +139,59 @@ describe("Hedron", function () {
     
     addr1Balance = await hedron.balanceOf(addr1.address);
     addr1ExpectedBalance = addr1ExpectedBalance.add(stake2.stakeShares);
-    addr1ExpectedBalance = addr1ExpectedBalance.add(stake2.stakeShares.mul(99).div(10));
+    addr1ExpectedBalance = addr1ExpectedBalance.add(stake2.stakeShares.mul(100).div(10));
 
     expect(addr1Balance).to.equal(addr1ExpectedBalance);
-  });
 
-  it("Should pass HSIM HEX deposit and withdrawl sanity checks.", async function () {
-    const HSIM = await ethers.getContractFactory("HEXStakeInstanceManager");
-    hsim = await HSIM.attach(hedron.hsim());
+    // move to next LPB bracket
+    await network.provider.send("evm_increaseTime", [604800])
+    await ethers.provider.send('evm_mine');
 
-    addr1Balance = await hex.balanceOf(addr1.address);
+    // test third stake normal mint
+    await hedron.connect(addr1).mintNative(2, stake3.stakeId);
+    
+    addr1Balance = await hedron.balanceOf(addr1.address);
+    addr1ExpectedBalance = addr1ExpectedBalance.add(stake3.stakeShares);
+    addr1ExpectedBalance = addr1ExpectedBalance.add(stake3.stakeShares.mul(90).div(10));
 
-    // deposit test
-    await hex.connect(addr1).approve(hedron.hsim(), 10000000000);
-    await hsim.connect(addr1).hexDeposit(10000000000);
-
-    addr1ExpectedBalance = ethers.BigNumber.from(addr1Balance).sub(10000000000);
-    addr1Balance = await hex.balanceOf(addr1.address);
-
-    expect(await hsim.hexBalance(addr1.address)).to.equal(10000000000);
     expect(addr1Balance).to.equal(addr1ExpectedBalance);
 
-    // withdrawl test
-    await expect(hsim.connect(addr1).hexWithdraw(20000000000)
-    ).to.be.revertedWith("HSIM: Insufficient HEX to facilitate withdrawl");
+    // test fourth stake claim then mint
+    await hedron.connect(addr1).claimNative(3, stake4.stakeId);
+    await hedron.connect(addr1).mintNative(3, stake4.stakeId);
+    
+    addr1Balance = await hedron.balanceOf(addr1.address);
+    addr1ExpectedBalance = addr1ExpectedBalance.add(stake4.stakeShares);
+    addr1ExpectedBalance = addr1ExpectedBalance.add(stake4.stakeShares.mul(90).div(10));
 
-    await hsim.connect(addr1).hexWithdraw(10000000000);
-
-    addr1ExpectedBalance = ethers.BigNumber.from(addr1Balance).add(10000000000);
-    addr1Balance = await hex.balanceOf(addr1.address);
-
-    expect(await hsim.hexBalance(addr1.address)).to.equal(0);
     expect(addr1Balance).to.equal(addr1ExpectedBalance);
   });
 
   it("Should be able to initialize and destroy an instanced HEX stake.", async function () {
+    const HSIM = await ethers.getContractFactory("HEXStakeInstanceManager");
+    hsim = await HSIM.attach(hedron.hsim());
 
     // deposit HEX to HSIM
     await hex.connect(addr1).approve(hedron.hsim(), 10000000000);
-    await hsim.connect(addr1).hexDeposit(10000000000);
 
     // start stake
     await expect(hsim.connect(addr1).hexStakeStart(20000000000, 1)
-    ).to.be.revertedWith("HSIM: Insufficient HEX to facilitate stake");
+    ).to.be.revertedWith("ERC20: transfer amount exceeds allowance");
 
     await hsim.connect(addr1).hexStakeStart(10000000000, 1);
-    expect(await hsim.hexBalance(addr1.address)).to.equal(0);
+    hexBalance = await hex.balanceOf(addr1.address);
     hsiAddress = await hsim.hsiLists(addr1.address, 0);
 
     // end pending stake (cancel)
     await hsim.connect(addr1).hexStakeEnd(hsiAddress);
-    expect(await hsim.hexBalance(addr1.address)).to.equal(10000000000);
+
+    newhexBalance = await hex.balanceOf(addr1.address);
+
+    expect(hexBalance.add(10000000000)).to.equal(newhexBalance);
   });
 
   it("Should pass instanced HEX stake minting sanity checks.", async function () {
     await hex.connect(addr1).approve(hedron.hsim(), 30000000000);
-    await hsim.connect(addr1).hexDeposit(30000000000);
 
     // start stakes
     await hsim.connect(addr1).hexStakeStart(10000000000, 1);
@@ -222,7 +230,7 @@ describe("Hedron", function () {
 
     addr1ExpectedBalance = ethers.BigNumber.from(addr1Balance);
     addr1ExpectedBalance = addr1ExpectedBalance.add(stake1.stakeShares);
-    addr1ExpectedBalance = addr1ExpectedBalance.add(stake1.stakeShares.mul(95).div(10));
+    addr1ExpectedBalance = addr1ExpectedBalance.add(stake1.stakeShares.mul(90).div(10));
     addr1Balance = await hedron.balanceOf(addr1.address);
 
     expect(addr1Balance).to.equal(addr1ExpectedBalance);
@@ -254,7 +262,7 @@ describe("Hedron", function () {
 
     addr1ExpectedBalance = ethers.BigNumber.from(addr1Balance);
     addr1ExpectedBalance = addr1ExpectedBalance.add(stake3.stakeShares);
-    addr1ExpectedBalance = addr1ExpectedBalance.add(stake3.stakeShares.mul(94).div(10));
+    addr1ExpectedBalance = addr1ExpectedBalance.add(stake3.stakeShares.mul(90).div(10));
     addr1Balance = await hedron.balanceOf(addr1.address);
 
     expect(addr1Balance).to.equal(addr1ExpectedBalance);
@@ -269,7 +277,7 @@ describe("Hedron", function () {
     
     addr1ExpectedBalance = ethers.BigNumber.from(addr1Balance);
     addr1ExpectedBalance = addr1ExpectedBalance.add(stake3.stakeShares);
-    addr1ExpectedBalance = addr1ExpectedBalance.add(stake3.stakeShares.mul(94).div(10));
+    addr1ExpectedBalance = addr1ExpectedBalance.add(stake3.stakeShares.mul(90).div(10));
     addr1Balance = await hedron.balanceOf(addr1.address);
     
     expect(addr1Balance).to.equal(addr1ExpectedBalance);
@@ -284,8 +292,7 @@ describe("Hedron", function () {
   it("Should pass loan sanity checks.", async function () {
 
     // deposit HEX to HSIM
-    await hex.connect(addr1).approve(hedron.hsim(), 30000000000);
-    await hsim.connect(addr1).hexDeposit(30000000000);
+    await hex.connect(addr1).approve(hedron.hsim(), 50000000000);
 
     // start stake
     await hsim.connect(addr1).hexStakeStart(10000000000, 1000);
@@ -442,6 +449,12 @@ describe("Hedron", function () {
     /// test loan liquidation / reallocation
     await hedron.connect(addr2).loanLiquidate(addr1.address, 3, hsiAddress3);
 
+    // move one day
+    await network.provider.send("evm_increaseTime", [86400])
+    await ethers.provider.send('evm_mine');
+  
+    await hedron.connect(addr2).loanLiquidateExit(1);
+
     hsiAddress4 = await hsim.hsiLists(addr2.address, 0);
     hsi2 = await HSI.attach(hsiAddress4);
     
@@ -485,6 +498,12 @@ describe("Hedron", function () {
 
     // liquidate
     await hedron.connect(addr2).loanLiquidate(addr1.address, 3, hsiAddress3);
+
+    // move one day
+    await network.provider.send("evm_increaseTime", [86400])
+    await ethers.provider.send('evm_mine');
+  
+    await hedron.connect(addr2).loanLiquidateExit(2);
   });
 
   it("Should pass HSI NFT sanity checks.", async function () {
@@ -505,7 +524,7 @@ describe("Hedron", function () {
 
     // test rarible royalties
     royalties = await hsim.getRaribleV2Royalties(1);
-    expect(royalties[0].value).equals(369);
+    expect(royalties[0].value).equals(100);
 
     // should fail as non owner
     await expect(hsim.connect(addr1).hexStakeDetokenize(1)
@@ -516,11 +535,11 @@ describe("Hedron", function () {
 
     // test rarible royalties after transfer
     royalties = await hsim.getRaribleV2Royalties(1);
-    expect(royalties[0].value).equals(369);
+    expect(royalties[0].value).equals(100);
 
     // make sure ERC2981 also works
     royalties = await hsim.royaltyInfo(1, 1000);
-    expect(royalties.royaltyAmount).equals(36);
+    expect(royalties.royaltyAmount).equals(10);
 
     // detokenize
     await hsim.connect(addr1).hexStakeDetokenize(1);
