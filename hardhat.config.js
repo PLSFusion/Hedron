@@ -78,5 +78,6 @@ module.exports = {
   },
   gasReporter: {
     currency: 'USD',
+    gasPrice: '98',
   },
 };

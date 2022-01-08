@@ -187,10 +187,11 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
         return hsiCount(user);
     }
 
-        /**
+    /**
      * @dev Wrapper function for hsiLists to allow HEX based applications to pull stake data.
      * @param user Address to retrieve the HSI list for.
-     * @return The number of HSI elements found within the HSI list. 
+     * @param hsiIndex The index of the HSI contract address which will returned. 
+     * @return HEXStake component of the Share struct. 
      */
     function stakeLists(
         address user,

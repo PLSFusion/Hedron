@@ -292,7 +292,7 @@ describe("Hedron", function () {
   it("Should pass loan sanity checks.", async function () {
 
     // deposit HEX to HSIM
-    await hex.connect(addr1).approve(hedron.hsim(), 50000000000);
+    await hex.connect(addr1).approve(hedron.hsim(), 60000000000);
 
     // start stake
     await hsim.connect(addr1).hexStakeStart(10000000000, 1000);
@@ -493,17 +493,74 @@ describe("Hedron", function () {
     ).to.be.revertedWith("HDRN: Cannot liquidate a loan not in default");
 
     // move one day
-    await network.provider.send("evm_increaseTime", [86400])
+    await network.provider.send("evm_increaseTime", [86400]);
     await ethers.provider.send('evm_mine');
 
     // liquidate
+    addr2Balance = await hedron.balanceOf(addr2.address);
+    oldAddr2Balance = addr2Balance;
     await hedron.connect(addr2).loanLiquidate(addr1.address, 3, hsiAddress3);
 
-    // move one day
-    await network.provider.send("evm_increaseTime", [86400])
+    liquidation = await hedron.liquidationList(2);
+    bidAmount = liquidation.bidAmount;
+    expectedAddr2Balance = await hedron.balanceOf(addr2.address);
+    expectedAddr2Balance = expectedAddr2Balance.add(bidAmount);
+
+    await expect(addr2Balance).to.equal(expectedAddr2Balance);
+    bidAmount = bidAmount.add(1000);
+
+    addr1Balance = await hedron.balanceOf(addr1.address);
+    await hedron.connect(addr1).loanLiquidateBid(2, bidAmount);
+    addr2Balance = await hedron.balanceOf(addr2.address);
+
+    await expect(addr2Balance).to.equal(oldAddr2Balance);
+
+    liquidation = await hedron.liquidationList(2);
+    bidAmount = liquidation.bidAmount;
+    expectedAddr1Balance = await hedron.balanceOf(addr1.address);
+    expectedAddr1Balance = expectedAddr1Balance.add(bidAmount);
+
+    await expect(addr1Balance).to.equal(expectedAddr1Balance);
+    
+    // move almost one day
+    await network.provider.send("evm_increaseTime", [86390]);
     await ethers.provider.send('evm_mine');
   
-    await hedron.connect(addr2).loanLiquidateExit(2);
+    // liquidation exit should fail
+    await expect(hedron.connect(addr2).loanLiquidateExit(2))
+    .to.be.revertedWith("HDRN: Cannot exit on active liquidation");
+
+    bidAmount = bidAmount.add(1000);
+    await hedron.connect(addr1).loanLiquidateBid(2, bidAmount);
+
+    // move almost 5 minutes
+    await network.provider.send("evm_increaseTime", [290]);
+    await ethers.provider.send('evm_mine');
+  
+    // should fail
+    await expect(hedron.connect(addr2).loanLiquidateExit(2))
+    .to.be.revertedWith("HDRN: Cannot exit on active liquidation");
+
+    // closer to 5 minutes
+    await network.provider.send("evm_increaseTime", [8]);
+    await ethers.provider.send('evm_mine');
+
+    bidAmount = bidAmount.add(1000);
+    await hedron.connect(addr2).loanLiquidateBid(2, bidAmount);
+
+    // another to 5 minutes
+    await network.provider.send("evm_increaseTime", [298]);
+    await ethers.provider.send('evm_mine');
+
+    // should still fail
+    await expect(hedron.connect(addr2).loanLiquidateExit(2))
+    .to.be.revertedWith("HDRN: Cannot exit on active liquidation");
+
+    // finish it off
+    await network.provider.send("evm_increaseTime", [1]);
+    await ethers.provider.send('evm_mine');
+
+    await hedron.connect(addr2).loanLiquidateExit(2)
   });
 
   it("Should pass HSI NFT sanity checks.", async function () {

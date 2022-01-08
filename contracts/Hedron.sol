@@ -1617,7 +1617,7 @@ contract Hedron is ERC20 {
         // if the bid is being placed in the last five minutes
         uint256 timestampModified = ((block.timestamp + 300) - (liquidation._liquidationStart + liquidation._endOffset));
         if (timestampModified > 86400) {
-            liquidation._endOffset += (86400 - timestampModified);
+            liquidation._endOffset += (timestampModified - 86400);
         }
 
         // give the previous bidder back their HDRN
@@ -1659,7 +1659,7 @@ contract Hedron is ERC20 {
         require(liquidation._isActive == true,
             "HDRN: Cannot exit on invalid liquidation");
 
-        require((block.timestamp - liquidation._liquidationStart) >= 86400,
+        require((block.timestamp - (liquidation._liquidationStart + liquidation._endOffset)) >= 86400,
             "HDRN: Cannot exit on active liquidation");
 
         // transfer the held HSI to the liquidator
