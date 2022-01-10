@@ -657,7 +657,7 @@ contract Hedron is ERC20 {
     {
 
         liquidationStore.liquidationStart = liquidation._liquidationStart;
-        liquidationStore.endOffset = uint88(liquidation._endOffset);
+        liquidationStore.endOffset = uint48(liquidation._endOffset);
         liquidationStore.hsiAddress = liquidation._hsiAddress;
         liquidationStore.liquidator = liquidation._liquidator;
         liquidationStore.bidAmount = uint96(liquidation._bidAmount);
@@ -807,7 +807,7 @@ contract Hedron is ERC20 {
             share._launchBonus = _calcLPBMultiplier(_hdrnLaunchDays - _currentDay());
         }
 
-        _hsim.hsiUpdate(hsiStarterAddress, hsiAddress, share);
+        _hsim.hsiUpdate(hsiStarterAddress, hsiIndex, hsiAddress, share);
     }
     
     /**
@@ -903,7 +903,7 @@ contract Hedron is ERC20 {
         day._dayMintedTotal += payout;
 
         // update HEX stake instance
-        _hsim.hsiUpdate(msg.sender, hsiAddress, share);
+        _hsim.hsiUpdate(msg.sender, hsiIndex, hsiAddress, share);
 
         _dailyDataUpdate(dayStore, day);
     }
@@ -1343,7 +1343,7 @@ contract Hedron is ERC20 {
             loanedSupply += payout;
 
             // update HEX stake instance
-            _hsim.hsiUpdate(msg.sender, hsiAddress, share);
+            _hsim.hsiUpdate(msg.sender, hsiIndex, hsiAddress, share);
 
             _dailyDataUpdate(dayStore, day);
 
@@ -1422,7 +1422,7 @@ contract Hedron is ERC20 {
         }
 
         // update HEX stake instance
-        _hsim.hsiUpdate(msg.sender, hsiAddress, share);
+        _hsim.hsiUpdate(msg.sender, hsiIndex, hsiAddress, share);
 
         // update daily data
         day._dayBurntTotal += (principal + interest);
@@ -1506,7 +1506,7 @@ contract Hedron is ERC20 {
         share._isLoaned = false;
 
         // update HEX stake instance
-        _hsim.hsiUpdate(msg.sender, hsiAddress, share);
+        _hsim.hsiUpdate(msg.sender, hsiIndex, hsiAddress, share);
 
         // update daily data 
         day._dayBurntTotal += (principal + interest);
@@ -1571,7 +1571,7 @@ contract Hedron is ERC20 {
         share._isLoaned = false;
 
         // update HEX stake instance
-        _hsim.hsiUpdate(owner, hsiAddress, share);
+        _hsim.hsiUpdate(owner, hsiIndex, hsiAddress, share);
 
         // transfer ownership of the HEX stake instance to a temporary holding address
         _hsim.hsiTransfer(owner, hsiAddress, address(0));
@@ -1583,6 +1583,9 @@ contract Hedron is ERC20 {
             hsiAddress, 
             uint40(_liquidationIds.current())
         );
+
+        // remove pricipal from global loaned supply
+        loanedSupply -= principal;
 
         // burn payment from the sender
         _burn(msg.sender, (principal + interest));

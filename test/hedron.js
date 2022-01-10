@@ -183,7 +183,7 @@ describe("Hedron", function () {
     hsiAddress = await hsim.hsiLists(addr1.address, 0);
 
     // end pending stake (cancel)
-    await hsim.connect(addr1).hexStakeEnd(hsiAddress);
+    await hsim.connect(addr1).hexStakeEnd(0, hsiAddress);
 
     newhexBalance = await hex.balanceOf(addr1.address);
 
@@ -283,9 +283,9 @@ describe("Hedron", function () {
     expect(addr1Balance).to.equal(addr1ExpectedBalance);
 
     // end stake
-    await hsim.connect(addr1).hexStakeEnd(hsiAddress);
-    await hsim.connect(addr1).hexStakeEnd(hsiAddress3);
-    await expect(hsim.connect(addr1).hexStakeEnd(hsiAddress2)
+    await hsim.connect(addr1).hexStakeEnd(0, hsiAddress);
+    await hsim.connect(addr1).hexStakeEnd(0, hsiAddress3);
+    await expect(hsim.connect(addr1).hexStakeEnd(0, hsiAddress2)
     ).to.be.revertedWith("HSIM: Cannot call stakeEnd against a loaned stake");
   });
 
@@ -354,12 +354,15 @@ describe("Hedron", function () {
     hsiAddress3 = await hsim.hsiLists(addr1.address, 3);
     stake3 = await hex.stakeLists(hsiAddress3, 0);
 
+    hsiIndex = await hsim.hsiCount(addr1.address);
+    hsiIndex = hsiIndex.sub(1);
+
     // move two hedron days
     await network.provider.send("evm_increaseTime", [172800])
     await ethers.provider.send('evm_mine');
 
     // end third stake
-    await hsim.connect(addr1).hexStakeEnd(hsiAddress3);
+    await hsim.connect(addr1).hexStakeEnd(hsiIndex, hsiAddress3);
 
     // move one hedron day
     await network.provider.send("evm_increaseTime", [86400])
@@ -573,10 +576,10 @@ describe("Hedron", function () {
     // should not tokenize loaned stake
     hsiAddress2 = await hsim.hsiLists(addr2.address, 1);
     await hedron.connect(addr2).loanInstanced(1, hsiAddress2);
-    await expect(hsim.connect(addr2).hexStakeTokenize(hsiAddress2)
+    await expect(hsim.connect(addr2).hexStakeTokenize(1, hsiAddress2)
     ).to.be.revertedWith("HSIM: Cannot tokenize a loaned stake");
 
-    await hsim.connect(addr2).hexStakeTokenize(hsiAddress);
+    await hsim.connect(addr2).hexStakeTokenize(0, hsiAddress);
     await hsim.connect(addr2).approve(addr1.address, 1);
 
     // test rarible royalties
