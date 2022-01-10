@@ -5,23 +5,10 @@ pragma solidity 0.8.4;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./auxiliary/HEXStakeInstanceManager.sol";
 
-/* NOTE to the auditor/s. Our biggest concern is likely to be uint
-   overflows. Since we are compiling with solidity 0.8.x an overflow
-   will cause a transaction to revert. The HEX contract itself contains
-   some overflow possibilities which will take some time (around 180
-   years or so in our estimation) to play out. In most cases we can 
-   conceive, these overflows should pose no operational threat. We cast
-   down to smaller uint sizes in most overflowable cases. However,
-   we need to be certain it is safe. */
-
 contract Hedron is ERC20 {
 
     using Counters for Counters.Counter;
 
-    /* uint72 *might* be overflowable, some checks should be made.
-       worst case we just double up this struct to fit in two
-       storage slots or just accept the overflow. This data is
-       not critical to Hedron's overall operation */
     struct DailyDataStore {
         uint72 dayMintedTotal;
         uint72 dayLoanedTotal;
@@ -1671,7 +1658,7 @@ contract Hedron is ERC20 {
         // update the daily burnt total
         day._dayBurntTotal += liquidation._bidAmount;
 
-        // dactivate liquidation, but keep data around for historical reasons.
+        // deactivate liquidation, but keep data around for historical reasons.
         liquidation._isActive == false;
 
         emit LoanLiquidateExit(

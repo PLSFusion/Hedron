@@ -215,7 +215,8 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     }
 
     /**
-     * @dev Creates a new HEX stake instance (HSI), transfers HEX ERC20 tokens to the HSI contract's address, and calls the "initialize" function.
+     * @dev Creates a new HEX stake instance (HSI), transfers HEX ERC20 tokens to the
+     *      HSI contract's address, and calls the "initialize" function.
      * @param amount Number of HEX ERC20 tokens to be staked.
      * @param length Number of days the HEX ERC20 tokens will be staked.
      */
@@ -250,7 +251,8 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     }
 
     /**
-     * @dev Calls the HEX stake instance (HSI) function "destroy", transfers HEX ERC20 tokens from the HSI contract's address, and credits the sender's address.
+     * @dev Calls the HEX stake instance (HSI) function "destroy", transfers HEX ERC20 tokens
+     *      from the HSI contract's address, and credits the sender's address.
      * @param hsiAddress Address of the HSI contract in which to call the "destroy" function.
      */
     function hexStakeEnd (
@@ -288,7 +290,8 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     }
 
     /**
-     * @dev Converts a HEX stake instance (HSI) contract address mapping into a HSI ERC721 token.
+     * @dev Converts a HEX stake instance (HSI) contract address mapping into a
+     *      HSI ERC721 token.
      * @param hsiAddress Address of the HSI contract to be converted.
      */
     function hexStakeTokenize (
