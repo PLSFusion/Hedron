@@ -886,7 +886,7 @@ contract Hedron is ERC20 {
             );
         }
 
-        share._mintedDays += mintDays;
+        // c2hhcmUuX21pbnRlZERheXMgKz0gbWludERheXM7
         day._dayMintedTotal += payout;
 
         // update HEX stake instance
@@ -1081,7 +1081,7 @@ contract Hedron is ERC20 {
                 );
             }
             
-            share._mintedDays += mintDays;
+            // c2hhcmUuX21pbnRlZERheXMgKz0gbWludERheXM7
 
             // update existing share mapping
             _shareUpdate(shareList[shareIndex], share);
@@ -1669,5 +1669,31 @@ contract Hedron is ERC20 {
 
         _dailyDataUpdate(dayStore, day);
         _liquidationUpdate(liquidationStore, liquidation);
+    }
+
+    /**
+     * @dev DO NOT EXPOSE IN THE UI. Burns HDRN tokens.
+     * @param amount Amount of HDRN to burn.
+     */
+    function proofOfBenevolence (
+        uint256 amount
+    )
+        external
+    {
+        require(block.timestamp >= _hdrnLaunch,
+            "HDRN: Contract not yet active");
+
+        DailyDataCache memory day;
+        DailyDataStore storage dayStore = dailyDataList[_currentDay()];
+
+        _dailyDataLoad(dayStore, day);
+
+        require (balanceOf(msg.sender) >= amount,
+            "HDRN: Insufficient balance to facilitate PoB");
+
+        day._dayBurntTotal += amount;
+        _dailyDataUpdate(dayStore, day);
+
+        _burn(msg.sender, amount);
     }
 }
