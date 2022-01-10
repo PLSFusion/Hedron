@@ -3,6 +3,7 @@
 pragma solidity 0.8.4;
 
 import "../declarations/Internal.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract HEXStakeInstance {
     
@@ -108,5 +109,28 @@ contract HEXStakeInstance {
         share.interestRate = uint32(_share._interestRate);
         share.paymentsMade = uint8 (_share._paymentsMade);
         share.isLoaned     = _share._isLoaned;
+    }
+
+    /**
+     * @dev Approves airdropped ERC20 tokens found in the HSI to HSIM
+     * @param contractAddress Address of the ERC20 contract which has airdropped tokens to the HSI.
+     */
+    function approveERC20Airdrop(
+        address contractAddress
+    ) 
+    external
+    returns (uint256)
+    {
+        require(msg.sender == _creator,
+            "HSI: Caller must be contract creator");
+        require(share.stake.stakedDays > 0,
+            "HSI: Initialization not yet performed");
+
+        IERC20 airdrop = IERC20(contractAddress);
+        uint256 airdropBalance = airdrop.balanceOf(whoami);
+
+        airdrop.approve(_creator, airdropBalance);
+
+        return airdropBalance;
     }
 }
