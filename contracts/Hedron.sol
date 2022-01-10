@@ -1507,7 +1507,7 @@ contract Hedron is ERC20 {
     }
 
     /**
-     * @dev Allows any address to liquidate a defaulted HEX stake instace (HSI) loan and claim the collateral.
+     * @dev Allows any address to liquidate a defaulted HEX stake instace (HSI) loan and start the liquidation process.
      * @param owner Address of the current HSI contract owner.
      * @param hsiIndex Index of the HSI contract address in the owner's HSI list (see hsiLists -> HEXStakeInstanceManager.sol).
      * @param hsiAddress Address of the HSI contract which coinsides with the index.
@@ -1578,6 +1578,11 @@ contract Hedron is ERC20 {
         _burn(msg.sender, (principal + interest));
     }
 
+    /**
+     * @dev Allows any address to enter a bid into an active liquidation.
+     * @param liquidationId ID number of the liquidation to place the bid in.
+     * @param liquidationBid Amount of HDRN to bid.
+     */
     function loanLiquidateBid (
         uint256 liquidationId,
         uint256 liquidationBid
@@ -1628,6 +1633,11 @@ contract Hedron is ERC20 {
         _burn(msg.sender, liquidationBid);
     }
 
+    /**
+     * @dev Allows any address to exit a completed liquidation, granting control of the
+            HSI to the highest bidder.
+     * @param liquidationId ID number of the liquidation to exit.
+     */
     function loanLiquidateExit (
         uint256 liquidationId
     )
