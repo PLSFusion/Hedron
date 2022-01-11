@@ -54,7 +54,7 @@ contract Hedron is ERC20 {
     HEXStakeInstanceManager                private _hsim;
     Counters.Counter                       private _liquidationIds;
     address                                public  hsim;
-    mapping(address => ShareStore[])       public  shareLists;
+    mapping(uint256 => ShareStore)         public  shareList;
     mapping(uint256 => DailyDataStore)     public  dailyDataList;
     mapping(uint256 => LiquidationStore)   public  liquidationList;
     uint256                                public  loanedSupply;
@@ -361,34 +361,34 @@ contract Hedron is ERC20 {
         pure
         returns (uint256)
     {
-        if (launchDay >= 91) {
+        if (launchDay > 90) {
             return 100;
         }
-        else if (launchDay >= 81) {
+        else if (launchDay > 80) {
             return 90;
         }
-        else if (launchDay >= 71) {
+        else if (launchDay > 70) {
             return 80;
         }
-        else if (launchDay >= 61) {
+        else if (launchDay > 60) {
             return 70;
         }
-        else if (launchDay >= 51) {
+        else if (launchDay > 50) {
             return 60;
         }
-        else if (launchDay >= 41) {
+        else if (launchDay > 40) {
             return 50;
         }
-        else if (launchDay >= 31) {
+        else if (launchDay > 30) {
             return 40;
         }
-        else if (launchDay >= 21) {
+        else if (launchDay > 20) {
             return 30;
         }
-        else if (launchDay >= 11) {
+        else if (launchDay > 10) {
             return 20;
         }
-        else if (launchDay >= 1) {
+        else if (launchDay > 0) {
             return 10;
         }
 
@@ -522,20 +522,18 @@ contract Hedron is ERC20 {
     
     /**
      * @dev Adds a new share element to a share list.
-     * @param shareList List in which a new share will be added
      * @param stake The HEX stake object the new share element is tied to.
      * @param mintedDays Amount of Hedron days the HEX stake has been minted against.
      * @param launchBonus The launch bonus multiplier of the new share element.
      */
     function _shareAdd(
-        ShareStore[] storage shareList,
         HEXStake memory stake,
         uint256 mintedDays,
         uint256 launchBonus
     )
         internal
     {
-        shareList.push(
+        shareList[stake.stakeId] =
             ShareStore(
                 stake,
                 uint16(mintedDays),
@@ -545,8 +543,7 @@ contract Hedron is ERC20 {
                 uint32(0),
                 uint8(0),
                 false
-            )
-        );
+            );
     }
 
     /**
@@ -652,7 +649,7 @@ contract Hedron is ERC20 {
     }
 
     /**
-     * @dev Attempts to match a HEX stake object to an existing share element within the sender's share list.
+     * @dev Attempts to match a HEX stake object to an existing share element within the share list.
      * @param stake a HEX stake object to be matched.
      * @return a boolean indicating if the HEX stake was matched and it's index in the stake list as separate values.
      */
@@ -668,105 +665,51 @@ contract Hedron is ERC20 {
         uint256 payout = 0;
         
         ShareCache memory share;
-        ShareStore[] storage shareList = shareLists[msg.sender];
 
-        for(uint256 i = 0; i < shareList.length; i++){
-            _shareLoad(shareList[i], share);
+        _shareLoad(shareList[stake.stakeId], share);
             
-            // stake matches an existing share element
-            if (share._stake.stakeId == stake.stakeId) {
-                stakeInShareList = true;
-                shareIndex = i;
-            }
+        // stake matches an existing share element
+        if (share._stake.stakeId == stake.stakeId) {
+            stakeInShareList = true;
+            shareIndex = stake.stakeId;
+        }
             
-            // check if the share is stale
-            else if (_isStaleShare(share)) {
+        // check if the share is stale
+        else if (_isStaleShare(share)) {
                 
-                // unrealized tokens go to the source address
-                mintDays = share._stake.stakedDays - share._mintedDays;
-                payout = share._stake.stakeShares * mintDays;
+            // unrealized tokens go to the source address
+            mintDays = share._stake.stakedDays - share._mintedDays;
+            payout = share._stake.stakeShares * mintDays;
                 
-                // launch phase bonus
-                if (share._launchBonus > 0) {
-                    uint256 bonus = _calcBonus(share._launchBonus, payout);
-                    if (bonus > 0) {
-                        payout += bonus;
-                    }
+            // launch phase bonus
+            if (share._launchBonus > 0) {
+                uint256 bonus = _calcBonus(share._launchBonus, payout);
+                if (bonus > 0) {
+                    payout += bonus;
                 }
-                
-                // loan to mint ratio bonus does not apply here
-
-                if (payout > 0) {
-                    DailyDataCache memory day;
-                    DailyDataStore storage dayStore = dailyDataList[_currentDay()];
-
-                    _dailyDataLoad(dayStore, day);
-            
-                    _mint(_hdrnSourceAddress, payout);
-            
-                    day._dayMintedTotal += payout;
-                    _dailyDataUpdate(dayStore, day);
-                }
-
-                // it's not safe to prune just yet
-                delete shareList[i];
             }
+                
+            // loan to mint ratio bonus does not apply here
+
+            if (payout > 0) {
+                DailyDataCache memory day;
+                DailyDataStore storage dayStore = dailyDataList[_currentDay()];
+
+                _dailyDataLoad(dayStore, day);
+            
+                _mint(_hdrnSourceAddress, payout);
+            
+                day._dayMintedTotal += payout;
+                _dailyDataUpdate(dayStore, day);
+            }
+
+            delete shareList[stake.stakeId];
         }
 
         return(stakeInShareList, shareIndex);
     }
 
-    /**
-     * @dev Iterates through the sender's share list and removes deleted elements.
-     */
-    function _sharePrune()
-        internal
-    {
-        ShareCache memory share;
-        ShareStore[] storage shareList = shareLists[msg.sender];
-
-        for(uint256 i = 0; i < shareList.length; i++){
-            
-            _shareLoad(shareList[i], share);
-            
-            if (share._stake.stakeId == 0 &&
-                share._stake.stakeShares == 0 &&
-                share._stake.lockedDay == 0 &&
-                share._stake.stakedDays == 0 &&
-                share._mintedDays == 0 &&
-                share._launchBonus == 0) {
-                    
-                uint256 lastIndex = shareList.length - 1;
-
-                if (i != lastIndex) {
-                    shareList[i] = shareList[lastIndex];
-                }
-
-                shareList.pop();
-                
-                if (i > 0) {
-                    i--;
-                }
-            }
-        }
-    }
-
     // Hedron External Functions
-
-    /**
-     * @dev Retreives the number of share elements in an addresses share list.
-     * @param user Address to retrieve the share list for.
-     * @return The number of share elements found within the share list. 
-     */
-    function shareCount(
-        address user
-    )
-        external
-        view
-        returns (uint256)
-    {
-        return shareLists[user].length;
-    }
 
     /**
      * @dev Claims the launch bonus on instanced HEX stakes (HSI) upon creation.
@@ -969,8 +912,6 @@ contract Hedron is ERC20 {
         bool stakeInShareList = false;
         uint256 shareIndex = 0;
         uint256 launchBonus = 0;
-
-        ShareStore[] storage shareList = shareLists[msg.sender];
         
         // check if share element already exists in the sender's mapping
         (stakeInShareList,
@@ -984,7 +925,6 @@ contract Hedron is ERC20 {
         }
 
         _shareAdd(
-            shareList,
             stake,
             0,
             launchBonus
@@ -1025,7 +965,6 @@ contract Hedron is ERC20 {
         uint256 launchBonus = 0;
 
         ShareCache memory share;
-        ShareStore[] storage shareList = shareLists[msg.sender];
         
         // check if share element already exists in the sender's mapping
         (stakeInShareList,
@@ -1135,7 +1074,6 @@ contract Hedron is ERC20 {
             
             // create a new share element for the sender
             _shareAdd(
-                shareList,
                 stake,
                 servedDays,
                 launchBonus
@@ -1144,9 +1082,6 @@ contract Hedron is ERC20 {
 
         day._dayMintedTotal += payout;
         
-        // remove any stale share elements from the sender's mapping
-        _sharePrune();
-
         _dailyDataUpdate(dayStore, day);
     }
 
