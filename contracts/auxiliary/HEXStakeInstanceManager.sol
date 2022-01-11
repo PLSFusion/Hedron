@@ -355,34 +355,6 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     }
 
     /**
-     * @dev Allows the HSI holder to remove airdropped ERC20 tokens from the HSI contract.
-     * @param contractAddress Address of the ERC20 contract which has airdropped tokens to the HSI.
-     */
-    function flushERC20Airdrop (
-        uint256 hsiIndex,
-        address hsiAddress,
-        address contractAddress
-    )
-        external
-    {
-        require(contractAddress != _hxAddress,
-            "HSIM: Cannot flush HEX using flushERC20Airdrop");
-
-        address[] storage hsiList = hsiLists[msg.sender];
-
-        require(hsiAddress == hsiList[hsiIndex],
-            "HDRN: HSI index address mismatch");
-
-        HEXStakeInstance hsi = HEXStakeInstance(hsiAddress);
-
-        IERC20 airdrop = IERC20(contractAddress);
-        uint256 airdropBalance = hsi.approveERC20Airdrop(contractAddress);
-
-        require(airdrop.transferFrom(hsiAddress, msg.sender, airdropBalance),
-            "HSIM: Airdrop transfer from HSI failed");
-    }
-
-    /**
      * @dev Updates the share data of a HEX stake instance (HSI) contract.
      * @param holder Address of the HSI contract owner.
      * @param hsiAddress Address of the HSI contract to be updated.
