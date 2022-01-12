@@ -30,3 +30,10 @@ struct HEXStake {
     uint16 unlockedDay;
     bool   isAutoStake;
 }
+
+struct HEXStakeMinimal {
+    uint40 stakeId;
+    uint72 stakeShares;
+    uint16 lockedDay;
+    uint16 stakedDays;
+}

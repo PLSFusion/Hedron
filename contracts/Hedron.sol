@@ -59,7 +59,12 @@ contract Hedron is ERC20 {
     mapping(uint256 => LiquidationStore)   public  liquidationList;
     uint256                                public  loanedSupply;
 
-    constructor(address hexAddress, uint256 hexLaunch) ERC20("Hedron", "HDRN") {
+    constructor(
+        address hexAddress,
+        uint256 hexLaunch
+    )
+        ERC20("Hedron", "HDRN")
+    {
         // set HEX contract address and launch time
         _hx = HEX(payable(hexAddress));
         _hxLaunch = hexLaunch;
@@ -354,6 +359,11 @@ contract Hedron is ERC20 {
         return uint256((payout * multiplier) / 10);
     }
 
+    /**
+     * @dev Returns the corresponding bonus multiplier for each launch phase day.
+     * @param launchDay The current day of the Hedron launch phase.
+     * @return A number representing the corresponsing launch bonus multiplier.
+     */
     function _calcLPBMultiplier (
         uint256 launchDay
     )
@@ -468,14 +478,14 @@ contract Hedron is ERC20 {
         view
         returns (ShareCache memory)
     {
-        HEXStake memory stake;
-        uint16  mintedDays;
-        uint8   launchBonus;
-        uint16  loanStart;
-        uint16  loanedDays;
-        uint32  interestRate;
-        uint8   paymentsMade;
-        bool    isLoaned;
+        HEXStakeMinimal memory stake;
+        uint16                 mintedDays;
+        uint8                  launchBonus;
+        uint16                 loanStart;
+        uint16                 loanedDays;
+        uint32                 interestRate;
+        uint8                  paymentsMade;
+        bool                   isLoaned;
 
         (stake,
          mintedDays,
@@ -497,37 +507,13 @@ contract Hedron is ERC20 {
     }
 
     /**
-     * @dev Determines if a share object refereces a HEX stake which no longer exists.
-     * @param share A share object to compare against the senders HEX stake list.
-     * @return a boolean value representing if the share object is stale or not.
-     */
-    function _isStaleShare (
-        ShareCache memory share
-    )
-        internal
-        view
-        returns (bool)
-    {
-        uint256 stakeCount = _hx.stakeCount(msg.sender);
-        for (uint256 i = 0; i < stakeCount; i++) {
-            HEXStake memory stake = _hexStakeLoad(i);
-            if (stake.stakeId == share._stake.stakeId) {
-                // share is not stale
-                return false;
-            }
-        }
-        // share is stale
-        return true;
-    }
-    
-    /**
      * @dev Adds a new share element to a share list.
      * @param stake The HEX stake object the new share element is tied to.
      * @param mintedDays Amount of Hedron days the HEX stake has been minted against.
      * @param launchBonus The launch bonus multiplier of the new share element.
      */
     function _shareAdd(
-        HEXStake memory stake,
+        HEXStakeMinimal memory stake,
         uint256 mintedDays,
         uint256 launchBonus
     )
@@ -657,55 +643,26 @@ contract Hedron is ERC20 {
         HEXStake memory stake
     ) 
         internal
+        view
         returns (bool, uint256)
     {
         bool stakeInShareList = false;
         uint256 shareIndex = 0;
-        uint256 mintDays = 0;
-        uint256 payout = 0;
         
         ShareCache memory share;
 
         _shareLoad(shareList[stake.stakeId], share);
             
         // stake matches an existing share element
-        if (share._stake.stakeId == stake.stakeId) {
+        if (share._stake.stakeId == stake.stakeId &&
+            share._stake.stakeShares == stake.stakeShares &&
+            share._stake.lockedDay == stake.lockedDay &&
+            share._stake.stakedDays == stake.stakedDays)
+        {
             stakeInShareList = true;
             shareIndex = stake.stakeId;
         }
             
-        // check if the share is stale
-        else if (_isStaleShare(share)) {
-                
-            // unrealized tokens go to the source address
-            mintDays = share._stake.stakedDays - share._mintedDays;
-            payout = share._stake.stakeShares * mintDays;
-                
-            // launch phase bonus
-            if (share._launchBonus > 0) {
-                uint256 bonus = _calcBonus(share._launchBonus, payout);
-                if (bonus > 0) {
-                    payout += bonus;
-                }
-            }
-                
-            // loan to mint ratio bonus does not apply here
-
-            if (payout > 0) {
-                DailyDataCache memory day;
-                DailyDataStore storage dayStore = dailyDataList[_currentDay()];
-
-                _dailyDataLoad(dayStore, day);
-            
-                _mint(_hdrnSourceAddress, payout);
-            
-                day._dayMintedTotal += payout;
-                _dailyDataUpdate(dayStore, day);
-            }
-
-            delete shareList[stake.stakeId];
-        }
-
         return(stakeInShareList, shareIndex);
     }
 
@@ -829,65 +786,13 @@ contract Hedron is ERC20 {
             );
         }
 
-        // c2hhcmUuX21pbnRlZERheXMgKz0gbWludERheXM7
+        share._mintedDays += mintDays;
         day._dayMintedTotal += payout;
 
         // update HEX stake instance
         _hsim.hsiUpdate(msg.sender, hsiIndex, hsiAddress, share);
 
         _dailyDataUpdate(dayStore, day);
-    }
-
-    /**
-     * @dev Mints unrealized Hedron ERC20 (HDRN) tokens to the source address using a HEX stake instance (HSI) backing.
-     * @param hsiIndex Index of the HSI contract address in the sender's HSI list (see hsiLists -> HEXStakeInstanceManager.sol).
-     * @param hsiAddress Address of the HSI contract which coinsides with the index.
-     * @param hsiEnderAddress Address of the user ending the HSI.
-     */
-    function mintInstancedUnrealized(
-        uint256 hsiIndex,
-        address hsiAddress,
-        address hsiEnderAddress
-    ) 
-        external
-    {
-        require(msg.sender == hsim,
-            "HSIM: Caller must be HSIM");
-
-        address _hsiAddress = _hsim.hsiLists(hsiEnderAddress, hsiIndex);
-        require(hsiAddress == _hsiAddress,
-            "HDRN: HSI index address mismatch");
-
-        ShareCache memory share = _hsiLoad(HEXStakeInstance(hsiAddress));
-
-        uint256 mintDays = 0;
-        uint256 payout = 0;
-
-        // unrealized tokens go to the source address
-        mintDays = share._stake.stakedDays - share._mintedDays;
-        payout = share._stake.stakeShares * mintDays;
-                
-        // launch phase bonus
-        if (share._launchBonus > 0) {
-            uint256 bonus = _calcBonus(share._launchBonus, payout);
-            if (bonus > 0) {
-                payout += bonus;
-            }
-        }
-                
-        // loan to mint ratio bonus does not apply here
-
-        if (payout > 0) {
-            DailyDataCache memory day;
-            DailyDataStore storage dayStore = dailyDataList[_currentDay()];
-
-            _dailyDataLoad(dayStore, day);
-
-            _mint(_hdrnSourceAddress, payout);
-            
-            day._dayMintedTotal += payout;
-            _dailyDataUpdate(dayStore, day);
-        }
     }
     
     /**
@@ -925,7 +830,11 @@ contract Hedron is ERC20 {
         }
 
         _shareAdd(
-            stake,
+            HEXStakeMinimal(stake.stakeId,
+                            stake.stakeShares,
+                            stake.lockedDay,
+                            stake.stakedDays
+            ),
             0,
             launchBonus
         );
@@ -1020,7 +929,7 @@ contract Hedron is ERC20 {
                 );
             }
             
-            // c2hhcmUuX21pbnRlZERheXMgKz0gbWludERheXM7
+            share._mintedDays += mintDays;
 
             // update existing share mapping
             _shareUpdate(shareList[shareIndex], share);
@@ -1074,10 +983,14 @@ contract Hedron is ERC20 {
             
             // create a new share element for the sender
             _shareAdd(
-                stake,
-                servedDays,
+                HEXStakeMinimal(stake.stakeId,
+                                stake.stakeShares,
+                                stake.lockedDay,
+                                stake.stakedDays
+                ),
+                0,
                 launchBonus
-                );
+            );
         }
 
         day._dayMintedTotal += payout;

@@ -27,7 +27,11 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     mapping(address => address[]) public  hsiLists;
     mapping(uint256 => address)   public  hsiToken;
  
-    constructor(address hexAddress) ERC721("HEX Stake Instance", "HSI") {
+    constructor(
+        address hexAddress
+    )
+        ERC721("HEX Stake Instance", "HSI")
+    {
         /* _creator is not an admin key. It is set at contsruction to be a link
            to the parent contract. In this case Hedron */
         _creator = msg.sender;
@@ -38,7 +42,8 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
         _hxAddress = hexAddress;
     }
 
-    function _baseURI()
+    function _baseURI(
+    )
         internal
         view
         virtual
@@ -108,7 +113,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     }
 
     /**
-     * @dev Loads share data from a HEX stake instance (HSI) into a ShareCache struct.
+     * @dev Loads share data from a HEX stake instance (HSI) into a ShareCache object.
      * @param hsi A HSI contract object from which share data will be loaded.
      */
     function _hsiLoad(
@@ -118,14 +123,14 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
         view
         returns (ShareCache memory)
     {
-        HEXStake memory stake;
-        uint16  mintedDays;
-        uint8   launchBonus;
-        uint16  loanStart;
-        uint16  loanedDays;
-        uint32  interestRate;
-        uint8   paymentsMade;
-        bool    isLoaned;
+        HEXStakeMinimal memory stake;
+        uint16                 mintedDays;
+        uint8                  launchBonus;
+        uint16                 loanStart;
+        uint16                 loanedDays;
+        uint32                 interestRate;
+        uint8                  paymentsMade;
+        bool                   isLoaned;
 
         (stake,
          mintedDays,
@@ -165,7 +170,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     /**
      * @dev Retreives the number of HSI elements in an addresses HSI list.
      * @param user Address to retrieve the HSI list for.
-     * @return The number of HSI elements found within the HSI list. 
+     * @return The number of HSI elements found within the HSI list.
      */
     function hsiCount(
         address user
@@ -196,7 +201,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
      * @dev Wrapper function for hsiLists to allow HEX based applications to pull stake data.
      * @param user Address to retrieve the HSI list for.
      * @param hsiIndex The index of the HSI contract address which will returned. 
-     * @return HEXStake component of the Share struct. 
+     * @return HEXStake object containing HEX stake data. 
      */
     function stakeLists(
         address user,
@@ -209,14 +214,13 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
         address[] storage hsiList = hsiLists[user];
 
         HEXStakeInstance hsi = HEXStakeInstance(hsiList[hsiIndex]);
-        ShareCache memory share = _hsiLoad(hsi);
 
-        return share._stake;
+        return hsi.stakeDataFetch();
     }
 
     /**
      * @dev Creates a new HEX stake instance (HSI), transfers HEX ERC20 tokens to the
-     *      HSI contract's address, and calls the "initialize" function.
+     *      HSI's contract address, and calls the "initialize" function.
      * @param amount Number of HEX ERC20 tokens to be staked.
      * @param length Number of days the HEX ERC20 tokens will be staked.
      */
@@ -252,7 +256,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
 
     /**
      * @dev Calls the HEX stake instance (HSI) function "destroy", transfers HEX ERC20 tokens
-     *      from the HSI contract's address, and credits the sender's address.
+     *      from the HSI's contract address to the senders address.
      * @param hsiAddress Address of the HSI contract in which to call the "destroy" function.
      */
     function hexStakeEnd (
@@ -271,9 +275,6 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
 
         require (share._isLoaned == false,
             "HSIM: Cannot call stakeEnd against a loaned stake");
-
-        Hedron hedron = Hedron(_creator);
-        hedron.mintInstancedUnrealized(hsiIndex, hsiAddress, msg.sender);
 
         hsi.destroy();
 
@@ -356,9 +357,10 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
 
     /**
      * @dev Updates the share data of a HEX stake instance (HSI) contract.
+     *      This is a pivileged operation only Hedron.sol can call.
      * @param holder Address of the HSI contract owner.
      * @param hsiAddress Address of the HSI contract to be updated.
-     * @param share Updated share data in the form of a ShareCache struct.
+     * @param share Updated share data in the form of a ShareCache object.
      */
     function hsiUpdate (
         address holder,
@@ -382,6 +384,8 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
 
     /**
      * @dev Transfers ownership of a HEX stake instance (HSI) contract to a new address.
+     *      This is a pivileged operation only Hedron.sol can call. End users can use
+     *      the NFT tokenize / detokenize to handle HSI transfers.
      * @param currentHolder Address to transfer the HSI contract from.
      * @param hsiAddress Address of the HSI contract to be transfered.
      * @param newHolder Address to transfer to HSI contract to.
@@ -399,7 +403,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
         address[] storage hsiListCurrent = hsiLists[currentHolder];
         address[] storage hsiListNew = hsiLists[newHolder];
 
-        for(uint256 i = 0; i < hsiListCurrent.length; i++) {
+        for (uint256 i = 0; i < hsiListCurrent.length; i++) {
             if (hsiListCurrent[i] == hsiAddress) {
                 hsiListNew.push(hsiAddress);
                 _pruneHSI(hsiListCurrent, i);
@@ -437,10 +441,11 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
 
     /**
      * @dev returns _hdrnFlowAddress, needed for some NFT marketplaces. This is not
-            an admin key.
+     *       an admin key.
      * @return _hdrnFlowAddress
      */
-    function owner()
+    function owner(
+    )
         external
         pure
         returns (address) 

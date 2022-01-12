@@ -27,7 +27,7 @@ module.exports = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 200,
+            runs: 200
           },
         },
       },
@@ -36,7 +36,7 @@ module.exports = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 200,
+            runs: 200
           },
         },
       },
@@ -69,15 +69,15 @@ module.exports = {
   },
   abiExporter: {
     clear: true,
-    flat: true,
+    flat: true
   },
   docgen: {
     path: './docs',
     clear: true,
-    runOnCompile: true,
+    runOnCompile: true
   },
   gasReporter: {
     currency: 'USD',
-    gasPrice: '98',
+    gasPrice: '98'
   },
 };
