@@ -127,7 +127,7 @@ contract HEXStakeInstance {
     /**
      * @dev Updates the HSI's internal share data. This is a privileged 
      *      operation only HEXStakeInstanceManager.sol can call.
-     * @param _share Updated share data in the form of a ShareCache object.
+     * @param _share "ShareCache" object containing updated share data.
      */
     function update(
         ShareCache memory _share

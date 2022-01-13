@@ -218,7 +218,7 @@ contract Hedron is ERC20 {
 
     /**
      * @dev Calculates the current HEX day.
-     * @return A number representing the current HEX day.
+     * @return Number representing the current HEX day.
      */
     function _hexCurrentDay()
         internal
@@ -229,9 +229,9 @@ contract Hedron is ERC20 {
     }
     
     /**
-     * @dev Loads HEX daily data values from the HEX contract into a memory HEX daily data object.
+     * @dev Loads HEX daily data values from the HEX contract into a "HEXDailyData" object.
      * @param hexDay The HEX day to obtain daily data for.
-     * @return A memory HEX daily data object containing the daily data values returned by the HEX contract.
+     * @return "HEXDailyData" object containing the daily data values returned by the HEX contract.
      */
     function _hexDailyDataLoad(
         uint256 hexDay
@@ -255,8 +255,8 @@ contract Hedron is ERC20 {
     }
 
     /**
-     * @dev Loads HEX global values from the HEX contract into a memory HEX globals object.
-     * @return A memory HEX globals object containing the global values returned by the HEX contract.
+     * @dev Loads HEX global values from the HEX contract into a "HEXGlobals" object.
+     * @return "HEXGlobals" object containing the global values returned by the HEX contract.
      */
     function _hexGlobalsLoad()
         internal
@@ -292,9 +292,9 @@ contract Hedron is ERC20 {
     }
 
     /**
-     * @dev Loads HEX stake values from the HEX contract into a memory HEX stake object.
-     * @param stakeIndex The index of a HEX stake object in the sender's HEX stake list.
-     * @return A memory HEX stake object containing the stake values returned by the HEX contract.
+     * @dev Loads HEX stake values from the HEX contract into a "HEXStake" object.
+     * @param stakeIndex The index of the desired HEX stake within the sender's HEX stake list.
+     * @return "HEXStake" object containing the stake values returned by the HEX contract.
      */
     function _hexStakeLoad(
         uint256 stakeIndex
@@ -332,7 +332,7 @@ contract Hedron is ERC20 {
 
     /**
      * @dev Calculates the current Hedron day.
-     * @return A number representing the current Hedron day.
+     * @return Number representing the current Hedron day.
      */
     function _currentDay()
         internal
@@ -343,26 +343,9 @@ contract Hedron is ERC20 {
     }
 
     /**
-     * @dev Calculates the number of bonus tokens to be minted for minting bonuses.
-     * @param multiplier Bonus multiplier increased by a factor of ten for decimal resolution.
-     * @param payout Payout to apply the bonus multiplier towards.
-     * @return The number of bonus tokens to mint.
-     */
-    function _calcBonus(
-        uint256 multiplier, 
-        uint256 payout
-    )
-        internal
-        pure
-        returns (uint256)
-    {   
-        return uint256((payout * multiplier) / 10);
-    }
-
-    /**
-     * @dev Returns the corresponding bonus multiplier for each launch phase day.
+     * @dev Calculates the multiplier to be used for the Launch Phase Bonus.
      * @param launchDay The current day of the Hedron launch phase.
-     * @return A number representing the corresponsing launch bonus multiplier.
+     * @return Multiplier to use for the given launch day.
      */
     function _calcLPBMultiplier (
         uint256 launchDay
@@ -406,9 +389,26 @@ contract Hedron is ERC20 {
     }
 
     /**
-     * @dev Loads values from a storage daily data object into a memory daily data object.
-     * @param dayStore Storage daily data object to be read.
-     * @param day Memory daily data object to be populated with storage data.
+     * @dev Calculates the number of bonus HDRN tokens to be minted in regards to minting bonuses.
+     * @param multiplier The multiplier to use, increased by a factor of 10.
+     * @param payout Payout to apply the multiplier towards.
+     * @return Number of tokens to mint as a bonus.
+     */
+    function _calcBonus(
+        uint256 multiplier, 
+        uint256 payout
+    )
+        internal
+        pure
+        returns (uint256)
+    {   
+        return uint256((payout * multiplier) / 10);
+    }
+
+    /**
+     * @dev Loads values from a "DailyDataStore" object into a "DailyDataCache" object.
+     * @param dayStore "DailyDataStore" object to be loaded.
+     * @param day "DailyDataCache" object to be populated with storage data.
      */
     function _dailyDataLoad(
         DailyDataStore storage dayStore,
@@ -449,9 +449,9 @@ contract Hedron is ERC20 {
     }
 
     /**
-     * @dev Updates a storage daily data object with values stored in memory.
-     * @param dayStore Storage daily data object to be updated.
-     * @param day Memory daily data object with updated values.
+     * @dev Updates a "DailyDataStore" object with values stored in a "DailyDataCache" object.
+     * @param dayStore "DailyDataStore" object to be updated.
+     * @param day "DailyDataCache" object with updated values.
      */
     function _dailyDataUpdate(
         DailyDataStore storage dayStore,
@@ -467,9 +467,9 @@ contract Hedron is ERC20 {
     }
 
     /**
-     * @dev Loads share data from a HEX stake instance (HSI) contract into memory.
-     * @param hsi The HEX stake instance object to load share data from.
-     * @return A memory share object containing the share data of the HSI.
+     * @dev Loads share data from a HEX stake instance (HSI) into a "ShareCache" object.
+     * @param hsi The HSI to load share data from.
+     * @return "ShareCache" object containing the share data of the HSI.
      */
     function _hsiLoad(
         HEXStakeInstance hsi
@@ -507,10 +507,10 @@ contract Hedron is ERC20 {
     }
 
     /**
-     * @dev Adds a new share element to a share list.
-     * @param stake The HEX stake object the new share element is tied to.
+     * @dev Creates (or overwrites) a new share element in the share list.
+     * @param stake "HEXStakeMinimal" object with which the share element is tied to.
      * @param mintedDays Amount of Hedron days the HEX stake has been minted against.
-     * @param launchBonus The launch bonus multiplier of the new share element.
+     * @param launchBonus The launch bonus multiplier of the share element.
      */
     function _shareAdd(
         HEXStakeMinimal memory stake,
@@ -533,11 +533,11 @@ contract Hedron is ERC20 {
     }
 
     /**
-     * @dev Adds a new liquidation element to the liquidations list.
+     * @dev Creates a new liquidation element in the liquidation list.
      * @param hsiAddress Address of the HEX Stake Instance (HSI) being liquidated.
      * @param liquidator Address of the user starting the liquidation process.
      * @param liquidatorBid Bid amount (in HDRN) the user is starting the liquidation process with.
-     * @return The ID of the liquidation element.
+     * @return ID of the liquidation element.
      */
     function _liquidationAdd(
         address hsiAddress,
@@ -562,9 +562,9 @@ contract Hedron is ERC20 {
     }
     
     /**
-     * @dev Loads values from a storage share object into a memory share object.
-     * @param shareStore Storage share object to be read.
-     * @param share Memory share object to be populated with storage data.
+     * @dev Loads values from a "ShareStore" object into a "ShareCache" object.
+     * @param shareStore "ShareStore" object to be loaded.
+     * @param share "ShareCache" object to be populated with storage data.
      */
     function _shareLoad(
         ShareStore storage shareStore,
@@ -573,15 +573,15 @@ contract Hedron is ERC20 {
         internal
         view
     {
-        share._stake = shareStore.stake;
-        share._mintedDays = shareStore.mintedDays;
+        share._stake       = shareStore.stake;
+        share._mintedDays  = shareStore.mintedDays;
         share._launchBonus = shareStore.launchBonus;
     }
 
     /**
-     * @dev Loads values from a storage liquidation object into a memory liquidation object.
-     * @param liquidationStore Storage liquidation object to be read.
-     * @param liquidation Memory liquidation object to be populated with storage data.
+     * @dev Loads values from a "LiquidationStore" object into a "LiquidationCache" object.
+     * @param liquidationStore "LiquidationStore" object to be loaded.
+     * @param liquidation "LiquidationCache" object to be populated with storage data.
      */
     function _liquidationLoad(
         LiquidationStore storage liquidationStore,
@@ -591,17 +591,17 @@ contract Hedron is ERC20 {
         view
     {
         liquidation._liquidationStart = liquidationStore.liquidationStart;
-        liquidation._endOffset = liquidationStore.endOffset;
-        liquidation._hsiAddress = liquidationStore.hsiAddress;
-        liquidation._liquidator = liquidationStore.liquidator;
-        liquidation._bidAmount = liquidationStore.bidAmount;
-        liquidation._isActive = liquidationStore.isActive;
+        liquidation._endOffset        = liquidationStore.endOffset;
+        liquidation._hsiAddress       = liquidationStore.hsiAddress;
+        liquidation._liquidator       = liquidationStore.liquidator;
+        liquidation._bidAmount        = liquidationStore.bidAmount;
+        liquidation._isActive         = liquidationStore.isActive;
     }
     
     /**
-     * @dev Updates a storage share object with values stored in memory.
-     * @param shareStore Storage share object to be updated.
-     * @param share Memory share object with updated values.
+     * @dev Updates a "ShareStore" object with values stored in a "ShareCache" object.
+     * @param shareStore "ShareStore" object to be updated.
+     * @param share "ShareCache object with updated values.
      */
     function _shareUpdate(
         ShareStore storage shareStore,
@@ -609,15 +609,15 @@ contract Hedron is ERC20 {
     )
         internal
     {
-        shareStore.stake = share._stake;
-        shareStore.mintedDays = uint16(share._mintedDays);
+        shareStore.stake       = share._stake;
+        shareStore.mintedDays  = uint16(share._mintedDays);
         shareStore.launchBonus = uint8(share._launchBonus);
     }
 
     /**
-     * @dev Updates a storage liquidation object with values stored in memory.
-     * @param liquidationStore Storage liquidation object to be updated.
-     * @param liquidation Memory liquidation object with updated values.
+     * @dev Updates a "LiquidationStore" object with values stored in a "LiquidationCache" object.
+     * @param liquidationStore "LiquidationStore" object to be updated.
+     * @param liquidation "LiquidationCache" object with updated values.
      */
     function _liquidationUpdate(
         LiquidationStore storage liquidationStore,
@@ -627,17 +627,17 @@ contract Hedron is ERC20 {
     {
 
         liquidationStore.liquidationStart = liquidation._liquidationStart;
-        liquidationStore.endOffset = uint48(liquidation._endOffset);
-        liquidationStore.hsiAddress = liquidation._hsiAddress;
-        liquidationStore.liquidator = liquidation._liquidator;
-        liquidationStore.bidAmount = uint96(liquidation._bidAmount);
-        liquidationStore.isActive = liquidation._isActive;
+        liquidationStore.endOffset        = uint48(liquidation._endOffset);
+        liquidationStore.hsiAddress       = liquidation._hsiAddress;
+        liquidationStore.liquidator       = liquidation._liquidator;
+        liquidationStore.bidAmount        = uint96(liquidation._bidAmount);
+        liquidationStore.isActive         = liquidation._isActive;
     }
 
     /**
-     * @dev Attempts to match a HEX stake object to an existing share element within the share list.
-     * @param stake a HEX stake object to be matched.
-     * @return a boolean indicating if the HEX stake was matched and it's index in the stake list as separate values.
+     * @dev Attempts to match a "HEXStake" object to an existing share element within the share list.
+     * @param stake "HEXStake" object to be matched.
+     * @return Boolean indicating if the HEX stake was matched and it's index within the stake list as separate values.
      */
     function _shareSearch(
         HEXStake memory stake
@@ -654,10 +654,10 @@ contract Hedron is ERC20 {
         _shareLoad(shareList[stake.stakeId], share);
             
         // stake matches an existing share element
-        if (share._stake.stakeId == stake.stakeId &&
+        if (share._stake.stakeId     == stake.stakeId &&
             share._stake.stakeShares == stake.stakeShares &&
-            share._stake.lockedDay == stake.lockedDay &&
-            share._stake.stakedDays == stake.stakedDays)
+            share._stake.lockedDay   == stake.lockedDay &&
+            share._stake.stakedDays  == stake.stakedDays)
         {
             stakeInShareList = true;
             shareIndex = stake.stakeId;
@@ -669,8 +669,10 @@ contract Hedron is ERC20 {
     // Hedron External Functions
 
     /**
-     * @dev Claims the launch bonus on instanced HEX stakes (HSI) upon creation.
-     * @param hsiIndex Index of the HSI contract address in the sender's HSI list (see hsiLists -> HEXStakeInstanceManager.sol).
+     * @dev Claims the launch phase bonus for a HEX stake instance (HSI). This is a privileged 
+     *      operation only HEXStakeInstanceManager.sol can call.
+     * @param hsiIndex Index of the HSI contract address in the sender's HSI list.
+     *                 (see hsiLists -> HEXStakeInstanceManager.sol)
      * @param hsiAddress Address of the HSI contract which coinsides with the index.
      * @param hsiStarterAddress Address of the user creating the HSI.
      */
@@ -699,7 +701,9 @@ contract Hedron is ERC20 {
     
     /**
      * @dev Mints Hedron ERC20 (HDRN) tokens to the sender using a HEX stake instance (HSI) backing.
-     * @param hsiIndex Index of the HSI contract address in the sender's HSI list (see hsiLists -> HEXStakeInstanceManager.sol).
+     *      HDRN Minted = HEX Stake B-Shares * (Days Served - Days Already Minted)
+     * @param hsiIndex Index of the HSI contract address in the sender's HSI list.
+     *                 (see hsiLists -> HEXStakeInstanceManager.sol)
      * @param hsiAddress Address of the HSI contract which coinsides with the index.
      */
     function mintInstanced(
@@ -727,8 +731,8 @@ contract Hedron is ERC20 {
             "HDRN: cannot mint against a loaned HEX stake");
 
         uint256 servedDays = 0;
-        uint256 mintDays = 0;
-        uint256 payout = 0;
+        uint256 mintDays   = 0;
+        uint256 payout     = 0;
 
         servedDays = _hexCurrentDay() - share._stake.lockedDay;
         
@@ -796,8 +800,9 @@ contract Hedron is ERC20 {
     }
     
     /**
-     * @dev Claims the launch bonus on naitve HEX stakes without minting HDRN
-     * @param stakeIndex Index of the HEX stake in sender's HEX stake list (see stakeLists -> HEX.sol).
+     * @dev Claims the launch phase bonus for a naitve HEX stake.
+     * @param stakeIndex Index of the HEX stake in sender's HEX stake list.
+     *                   (see stakeLists -> HEX.sol)
      * @param stakeId ID of the HEX stake which coinsides with the index.
      */
     function claimNative(
@@ -842,6 +847,7 @@ contract Hedron is ERC20 {
 
     /**
      * @dev Mints Hedron ERC20 (HDRN) tokens to the sender using a native HEX stake backing.
+     *      HDRN Minted = HEX Stake B-Shares * (Days Served - Days Already Minted)
      * @param stakeIndex Index of the HEX stake in sender's HEX stake list (see stakeLists -> HEX.sol).
      * @param stakeId ID of the HEX stake which coinsides with the index.
      */
@@ -1000,9 +1006,10 @@ contract Hedron is ERC20 {
 
     /**
      * @dev Calculates the payment for existing and non-existing HEX stake instance (HSI) loans.
-     * @param hsiIndex Index of the HSI contract address in the sender's HSI list (see hsiLists -> HEXStakeInstanceManager.sol).
+     * @param hsiIndex Index of the HSI contract address in the sender's HSI list.
+    *                  (see hsiLists -> HEXStakeInstanceManager.sol)
      * @param hsiAddress Address of the HSI contract which coinsides with the index.
-     * @return The payment amount with principal and interest as serparate values.
+     * @return Payment amount with principal and interest as serparate values.
      */
     function calcLoanPayment (
         uint256 hsiIndex,
@@ -1066,9 +1073,10 @@ contract Hedron is ERC20 {
 
     /**
      * @dev Calculates the full payoff for an existing HEX stake instance (HSI) loan calculating interest only up to the current Hedron day.
-     * @param hsiIndex Index of the HSI contract address in the sender's HSI list (see hsiLists -> HEXStakeInstanceManager.sol).
+     * @param hsiIndex Index of the HSI contract address in the sender's HSI list.
+     *                 (see hsiLists -> HEXStakeInstanceManager.sol)
      * @param hsiAddress Address of the HSI contract which coinsides with the index.
-     * @return The payoff amount with principal and interest as separate values.
+     * @return Payoff amount with principal and interest as separate values.
      */
     function calcLoanPayoff (
         uint256 hsiIndex,
@@ -1124,7 +1132,9 @@ contract Hedron is ERC20 {
 
     /**
      * @dev Loans all unminted Hedron ERC20 (HDRN) tokens against a HEX stake instance (HSI).
-     * @param hsiIndex Index of the HSI contract address in the sender's HSI list (see hsiLists -> HEXStakeInstanceManager.sol).
+     *      HDRN Loaned = HEX Stake B-Shares * (Days Staked - Days Already Minted)
+     * @param hsiIndex Index of the HSI contract address in the sender's HSI list.
+     *                 (see hsiLists -> HEXStakeInstanceManager.sol)
      * @param hsiAddress Address of the HSI contract which coinsides the index.
      */
     function loanInstanced (
@@ -1188,7 +1198,8 @@ contract Hedron is ERC20 {
 
     /**
      * @dev Makes a single payment towards a HEX stake instance (HSI) loan.
-     * @param hsiIndex Index of the HSI contract address in the sender's HSI list (see hsiLists -> HEXStakeInstanceManager.sol).
+     * @param hsiIndex Index of the HSI contract address in the sender's HSI list.
+     *                 (see hsiLists -> HEXStakeInstanceManager.sol)
      * @param hsiAddress Address of the HSI contract which coinsides with the index.
      */
     function loanPayment (
@@ -1272,7 +1283,8 @@ contract Hedron is ERC20 {
 
     /**
      * @dev Pays off a HEX stake instance (HSI) loan calculating interest only up to the current Hedron day.
-     * @param hsiIndex Index of the HSI contract address in the sender's HSI list (see hsiLists -> HEXStakeInstanceManager.sol).
+     * @param hsiIndex Index of the HSI contract address in the sender's HSI list.
+     *                 (see hsiLists -> HEXStakeInstanceManager.sol)
      * @param hsiAddress Address of the HSI contract which coinsides with the index.
      */
     function loanPayoff (
@@ -1357,7 +1369,8 @@ contract Hedron is ERC20 {
     /**
      * @dev Allows any address to liquidate a defaulted HEX stake instace (HSI) loan and start the liquidation process.
      * @param owner Address of the current HSI contract owner.
-     * @param hsiIndex Index of the HSI contract address in the owner's HSI list (see hsiLists -> HEXStakeInstanceManager.sol).
+     * @param hsiIndex Index of the HSI contract address in the owner's HSI list.
+     *                 (see hsiLists -> HEXStakeInstanceManager.sol)
      * @param hsiAddress Address of the HSI contract which coinsides with the index.
      */
     function loanLiquidate (
@@ -1530,7 +1543,7 @@ contract Hedron is ERC20 {
     }
 
     /**
-     * @dev DO NOT EXPOSE IN THE UI. Burns HDRN tokens.
+     * @dev Burns HDRN tokens, this is not to be exposed to end users.
      * @param amount Amount of HDRN to burn.
      */
     function proofOfBenevolence (

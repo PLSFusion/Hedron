@@ -113,7 +113,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     }
 
     /**
-     * @dev Loads share data from a HEX stake instance (HSI) into a ShareCache object.
+     * @dev Loads share data from a HEX stake instance (HSI) into a "ShareCache" object.
      * @param hsi A HSI contract object from which share data will be loaded.
      */
     function _hsiLoad(
@@ -170,7 +170,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     /**
      * @dev Retreives the number of HSI elements in an addresses HSI list.
      * @param user Address to retrieve the HSI list for.
-     * @return The number of HSI elements found within the HSI list.
+     * @return Number of HSI elements found within the HSI list.
      */
     function hsiCount(
         address user
@@ -185,7 +185,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     /**
      * @dev Wrapper function for hsiCount to allow HEX based applications to pull stake data.
      * @param user Address to retrieve the HSI list for.
-     * @return The number of HSI elements found within the HSI list. 
+     * @return Number of HSI elements found within the HSI list. 
      */
     function stakeCount(
         address user
@@ -201,7 +201,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
      * @dev Wrapper function for hsiLists to allow HEX based applications to pull stake data.
      * @param user Address to retrieve the HSI list for.
      * @param hsiIndex The index of the HSI contract address which will returned. 
-     * @return HEXStake object containing HEX stake data. 
+     * @return "HEXStake" object containing HEX stake data. 
      */
     function stakeLists(
         address user,
@@ -360,7 +360,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
      *      This is a pivileged operation only Hedron.sol can call.
      * @param holder Address of the HSI contract owner.
      * @param hsiAddress Address of the HSI contract to be updated.
-     * @param share Updated share data in the form of a ShareCache object.
+     * @param share "ShareCache" object containing updated share data.
      */
     function hsiUpdate (
         address holder,
@@ -456,7 +456,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     /**
      * @dev Adds Rarible V2 and ERC2981 interface support.
      * @param interfaceId Unique contract interface identifier.
-     * @return true if the interface is supported, false if not.
+     * @return True if the interface is supported, false if not.
      */
     function supportsInterface(
         bytes4 interfaceId
