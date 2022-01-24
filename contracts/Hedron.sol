@@ -86,6 +86,12 @@ contract Hedron is ERC20 {
     
     // Hedron Events
 
+    event Claim(
+        uint256 launchBonus,
+        address indexed claimant,
+        uint40  indexed stakeId
+    );
+
     event Mint(
         uint256 data,
         address indexed minter,
@@ -696,6 +702,8 @@ contract Hedron is ERC20 {
             share._launchBonus = _calcLPBMultiplier(_hdrnLaunchDays - _currentDay());
         }
 
+        emit Claim(share._launchBonus, msg.sender, share._stake.stakeId);
+
         _hsim.hsiUpdate(hsiStarterAddress, hsiIndex, hsiAddress, share);
     }
     
@@ -833,6 +841,8 @@ contract Hedron is ERC20 {
         if (_currentDay() < _hdrnLaunchDays) {
             launchBonus = _calcLPBMultiplier(_hdrnLaunchDays - _currentDay());
         }
+
+        emit Claim(launchBonus, msg.sender, stake.stakeId);
 
         _shareAdd(
             HEXStakeMinimal(stake.stakeId,
@@ -994,7 +1004,7 @@ contract Hedron is ERC20 {
                                 stake.lockedDay,
                                 stake.stakedDays
                 ),
-                0,
+                servedDays,
                 launchBonus
             );
         }
