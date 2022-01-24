@@ -68,7 +68,7 @@ describe("Hedron", function () {
     ).to.be.revertedWith("HDRN: Contract not yet active");
 
     // move to Hedron launch day
-    await network.provider.send("evm_mine", [1639263600]);
+    await network.provider.send("evm_mine", [1645830000]);
   });
 
   it("Should pass native HEX stake minting sanity checks.", async function () {
@@ -584,7 +584,7 @@ describe("Hedron", function () {
 
     // test rarible royalties
     royalties = await hsim.getRaribleV2Royalties(1);
-    expect(royalties[0].value).equals(100);
+    expect(royalties[0].value).equals(15);
 
     // should fail as non owner
     await expect(hsim.connect(addr1).hexStakeDetokenize(1)
@@ -595,11 +595,11 @@ describe("Hedron", function () {
 
     // test rarible royalties after transfer
     royalties = await hsim.getRaribleV2Royalties(1);
-    expect(royalties[0].value).equals(100);
+    expect(royalties[0].value).equals(15);
 
     // make sure ERC2981 also works
-    royalties = await hsim.royaltyInfo(1, 1000);
-    expect(royalties.royaltyAmount).equals(10);
+    royalties = await hsim.royaltyInfo(1, 10000);
+    expect(royalties.royaltyAmount).equals(15);
 
     // detokenize
     await hsim.connect(addr1).hexStakeDetokenize(1);

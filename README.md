@@ -7,7 +7,7 @@ These smart contracts are **UNLICENSED, All rights are reserved**. This reposito
 
 ## Contracts of Interest
 
-**Hedron.sol** - ERC20 contract reposible for minting and loaning HDRN tokens against Native and Instanced HEX stakes.
+**Hedron.sol** - ERC20 contract resposible for minting and loaning HDRN tokens against Native and Instanced HEX stakes.
 
 **HEXStakeInstanceManager.sol** ERC721 contract used for managing Instanced HEX stakes as well as issuing NFT tokens which correspond to said Instanced HEX stakes.
  

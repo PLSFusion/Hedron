@@ -87,57 +87,76 @@ contract Hedron is ERC20 {
     // Hedron Events
 
     event Claim(
-        uint256 launchBonus,
+        uint256         data,
         address indexed claimant,
         uint40  indexed stakeId
     );
 
     event Mint(
-        uint256 data,
+        uint256         data,
         address indexed minter,
         uint40  indexed stakeId
     );
 
     event LoanStart(
-        uint256 data,
+        uint256         data,
         address indexed borrower,
         uint40  indexed stakeId
     );
 
     event LoanPayment(
-        uint256 data,
+        uint256         data,
         address indexed borrower,
         uint40  indexed stakeId
     );
 
     event LoanEnd(
-        uint256 data,
+        uint256         data,
         address indexed borrower,
         uint40  indexed stakeId
     );
 
     event LoanLiquidateStart(
-        uint256 startingBid,
-        address indexed hsiAddress,
+        uint256         data,
+        address indexed borrower,
+        uint40  indexed stakeId,
         uint40  indexed liquidationId
     );
 
     event LoanLiquidateBid(
-        uint256 bidAmount,
+        uint256         data,
         address indexed bidder,
+        uint40  indexed stakeId,
         uint40  indexed liquidationId
     );
 
     event LoanLiquidateExit(
-        uint256 finalBid,
+        uint256         data,
         address indexed liquidator,
+        uint40  indexed stakeId,
         uint40  indexed liquidationId
     );
 
     // Hedron Private Functions
 
+    function _emitClaim(
+        uint40  stakeId,
+        uint256 stakeShares,
+        uint256 launchBonus
+    )
+        private
+    {
+        emit Claim(
+            uint256(uint40(block.timestamp))
+                | (uint256(uint72(stakeShares))  << 40)
+                | (uint256(uint144(launchBonus)) << 112),
+            msg.sender,
+            stakeId
+        );
+    }
+
     function _emitMint(
-        uint40 stakeId,
+        uint40  stakeId,
         uint256 stakeShares,
         uint256 mintedDays,
         uint256 launchBonus,
@@ -148,16 +167,16 @@ contract Hedron is ERC20 {
         emit Mint(
             uint256(uint40(block.timestamp))
                 | (uint256(uint72(stakeShares)) << 40)
-                | (uint256(uint16(mintedDays)) << 112)
-                | (uint256(uint8(launchBonus)) << 128)
-                | (uint256(uint120(payout)) << 136),
+                | (uint256(uint16(mintedDays))  << 112)
+                | (uint256(uint8(launchBonus))  << 128)
+                | (uint256(uint120(payout))     << 136),
             msg.sender,
             stakeId
         );
     }
 
     function _emitLoanStart(
-        uint40 stakeId,
+        uint40  stakeId,
         uint256 stakeShares,
         uint256 loanedDays,
         uint256 interestRate,
@@ -167,17 +186,17 @@ contract Hedron is ERC20 {
     {
         emit LoanStart(
             uint256(uint40(block.timestamp))
-                | (uint256(uint72(stakeShares)) << 40)
-                | (uint256(uint16(loanedDays)) << 112)
+                | (uint256(uint72(stakeShares))  << 40)
+                | (uint256(uint16(loanedDays))   << 112)
                 | (uint256(uint32(interestRate)) << 128)
-                | (uint256(uint96(borrowed)) << 160),
+                | (uint256(uint96(borrowed))     << 160),
             msg.sender,
             stakeId
         );
     }
 
     function _emitLoanPayment(
-        uint40 stakeId,
+        uint40  stakeId,
         uint256 stakeShares,
         uint256 loanedDays,
         uint256 interestRate,
@@ -188,18 +207,18 @@ contract Hedron is ERC20 {
     {
         emit LoanPayment(
             uint256(uint40(block.timestamp))
-                | (uint256(uint72(stakeShares)) << 40)
-                | (uint256(uint16(loanedDays)) << 112)
+                | (uint256(uint72(stakeShares))  << 40)
+                | (uint256(uint16(loanedDays))   << 112)
                 | (uint256(uint32(interestRate)) << 128)
-                | (uint256(uint8(paymentsMade)) << 160)
-                | (uint256(uint88(payment)) << 168),
+                | (uint256(uint8(paymentsMade))  << 160)
+                | (uint256(uint88(payment))      << 168),
             msg.sender,
             stakeId
         );
     }
 
     function _emitLoanEnd(
-        uint40 stakeId,
+        uint40  stakeId,
         uint256 stakeShares,
         uint256 loanedDays,
         uint256 interestRate,
@@ -210,13 +229,70 @@ contract Hedron is ERC20 {
     {
         emit LoanEnd(
             uint256(uint40(block.timestamp))
-                | (uint256(uint72(stakeShares)) << 40)
-                | (uint256(uint16(loanedDays)) << 112)
+                | (uint256(uint72(stakeShares))  << 40)
+                | (uint256(uint16(loanedDays))   << 112)
                 | (uint256(uint32(interestRate)) << 128)
-                | (uint256(uint8(paymentsMade)) << 160)
-                | (uint256(uint88(payoff)) << 168),
+                | (uint256(uint8(paymentsMade))  << 160)
+                | (uint256(uint88(payoff))       << 168),
             msg.sender,
             stakeId
+        );
+    }
+
+    function _emitLoanLiquidateStart(
+        uint40  stakeId,
+        uint40  liquidationId,
+        uint256 stakeShares,
+        uint256 loanedDays,
+        uint256 interestRate,
+        uint256 paymentsMade,
+        uint256 startingBid
+    )
+        private
+    {
+        emit LoanLiquidateStart(
+            uint256(uint40(block.timestamp))
+                | (uint256(uint72(stakeShares))  << 40)
+                | (uint256(uint16(loanedDays))   << 112)
+                | (uint256(uint32(interestRate)) << 128)
+                | (uint256(uint8(paymentsMade))  << 160)
+                | (uint256(uint88(startingBid))  << 168),
+            msg.sender,
+            stakeId,
+            liquidationId
+        );
+    }
+
+    function _emitLoanLiquidateBid(
+        uint40  stakeId,
+        uint40  liquidationId,
+        uint256 bidAmount
+    )
+        private
+    {
+        emit LoanLiquidateBid(
+            uint256(uint40(block.timestamp))
+                | (uint256(uint216(bidAmount)) << 40),
+            msg.sender,
+            stakeId,
+            liquidationId
+        );
+    }
+
+    function _emitLoanLiquidateExit(
+        uint40  stakeId,
+        uint40  liquidationId,
+        address liquidator,
+        uint256 finalBid
+    )
+        private
+    {
+        emit LoanLiquidateExit(
+            uint256(uint40(block.timestamp))
+                | (uint256(uint216(finalBid)) << 40),
+            liquidator,
+            stakeId,
+            liquidationId
         );
     }
 
@@ -700,9 +776,8 @@ contract Hedron is ERC20 {
 
         if (_currentDay() < _hdrnLaunchDays) {
             share._launchBonus = _calcLPBMultiplier(_hdrnLaunchDays - _currentDay());
+            emit Claim(share._launchBonus, msg.sender, share._stake.stakeId);
         }
-
-        emit Claim(share._launchBonus, msg.sender, share._stake.stakeId);
 
         _hsim.hsiUpdate(hsiStarterAddress, hsiIndex, hsiAddress, share);
     }
@@ -840,9 +915,8 @@ contract Hedron is ERC20 {
 
         if (_currentDay() < _hdrnLaunchDays) {
             launchBonus = _calcLPBMultiplier(_hdrnLaunchDays - _currentDay());
+            emit Claim(launchBonus, msg.sender, stake.stakeId);
         }
-
-        emit Claim(launchBonus, msg.sender, stake.stakeId);
 
         _shareAdd(
             HEXStakeMinimal(stake.stakeId,
@@ -1436,10 +1510,14 @@ contract Hedron is ERC20 {
 
         // create a new liquidation element
         _liquidationAdd(hsiAddress, msg.sender, (principal + interest));
-        emit LoanLiquidateStart(
-            (principal + interest),
-            hsiAddress, 
-            uint40(_liquidationIds.current())
+
+        _emitLoanLiquidateStart(share._stake.stakeId,
+                                uint40(_liquidationIds.current()),
+                                share._stake.stakeShares,
+                                share._loanedDays,
+                                share._interestRate,
+                                share._paymentsMade,
+                                (principal + interest)
         );
 
         // remove pricipal from global loaned supply
@@ -1494,10 +1572,12 @@ contract Hedron is ERC20 {
         liquidation._bidAmount = liquidationBid;
 
         _liquidationUpdate(liquidationStore, liquidation);
-        emit LoanLiquidateBid(
-            liquidationBid, 
-            msg.sender, 
-            uint40(liquidationId)
+
+        ShareCache  memory share = _hsiLoad(HEXStakeInstance(liquidation._hsiAddress));
+
+        _emitLoanLiquidateBid(share._stake.stakeId,
+                              uint40(liquidationId),
+                              liquidationBid
         );
 
         // burn the new bidders bid amount
@@ -1542,11 +1622,12 @@ contract Hedron is ERC20 {
         // deactivate liquidation, but keep data around for historical reasons.
         liquidation._isActive == false;
 
-        emit LoanLiquidateExit(
-            liquidation._bidAmount,
-            liquidation._liquidator,
-            uint40(liquidationId)
-        );
+        ShareCache  memory share = _hsiLoad(HEXStakeInstance(liquidation._hsiAddress));
+
+        _emitLoanLiquidateExit(share._stake.stakeId,
+                               uint40(liquidationId),
+                               liquidation._liquidator,
+                               liquidation._bidAmount);
 
         _dailyDataUpdate(dayStore, day);
         _liquidationUpdate(liquidationStore, liquidation);

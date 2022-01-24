@@ -26,6 +26,6 @@ struct ShareCache {
     bool            _isLoaned;
 }
 
-address constant _hdrnSourceAddress = address(1); //TODO CHANGE ME BEFORE DEPLOYMENT
-address constant _hdrnFlowAddress   = address(1); //TODO CHANGE ME BEFORE DEPLOYMENT
-uint256 constant _hdrnLaunch        = 1639263600; //TODO CHANGE ME BEFORE DEPLOYMENT
+address constant _hdrnSourceAddress = address(0x291784Cd4eDd389a9794a4C68813d6dDe048A7c0);
+address constant _hdrnFlowAddress   = address(0x53686418B7C02B87771C789cB51A7b90864069F7);
+uint256 constant _hdrnLaunch        = 1645830000;

@@ -16,7 +16,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     using Counters for Counters.Counter;
 
     bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
-    uint96 private constant _hsimRoyaltyBasis = 100; // Rarible V2 royalty basis
+    uint96 private constant _hsimRoyaltyBasis = 15; // Rarible V2 royalty basis
     
     Counters.Counter private _tokenIds;
     address          private _creator;
@@ -65,30 +65,35 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     }
 
     event HSIStart(
-        address indexed instance,
+        uint256         timestamp,
+        address indexed hsiAddress,
         address indexed staker
     );
 
     event HSIEnd(
-        address indexed instance,
+        uint256         timestamp,
+        address indexed hsiAddress,
         address indexed staker
     );
 
     event HSITransfer(
-        address indexed instance,
+        uint256         timestamp,
+        address indexed hsiAddress,
         address indexed oldStaker,
         address indexed newStaker
     );
 
     event HSITokenize(
-        uint256 indexed tokenId,
-        address indexed instance,
+        uint256         timestamp,
+        uint256 indexed hsiTokenId,
+        address indexed hsiAddress,
         address indexed staker
     );
 
     event HSIDetokenize(
-        uint256 indexed tokenId,
-        address indexed instance,
+        uint256         timestamp,
+        uint256 indexed hsiTokenId,
+        address indexed hsiAddress,
         address indexed staker
     );
 
@@ -249,7 +254,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
         Hedron hedron = Hedron(_creator);
         hedron.claimInstanced(hsiIndex, hsiAddress, msg.sender);
 
-        emit HSIStart(hsiAddress, msg.sender);
+        emit HSIStart(block.timestamp, hsiAddress, msg.sender);
 
         return hsiAddress;
     }
@@ -278,7 +283,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
 
         hsi.destroy();
 
-        emit HSIEnd(hsiAddress, msg.sender);
+        emit HSIEnd(block.timestamp, hsiAddress, msg.sender);
 
         uint256 hsiBalance = _hx.balanceOf(hsiAddress);
 
@@ -324,7 +329,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
 
         _pruneHSI(hsiList, hsiIndex);
 
-        emit HSITokenize(newTokenId, hsiAddress, msg.sender);
+        emit HSITokenize(block.timestamp, newTokenId, hsiAddress, msg.sender);
 
         return newTokenId;
     }
@@ -350,7 +355,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
 
         _burn(tokenId);
 
-        emit HSIDetokenize(tokenId, hsiAddress, msg.sender);
+        emit HSIDetokenize(block.timestamp, tokenId, hsiAddress, msg.sender);
 
         return hsiAddress;
     }
@@ -408,7 +413,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
                 hsiListNew.push(hsiAddress);
                 _pruneHSI(hsiListCurrent, i);
 
-                emit HSITransfer(hsiAddress, currentHolder, newHolder);
+                emit HSITransfer(block.timestamp, hsiAddress, currentHolder, newHolder);
             }
         }
     }
