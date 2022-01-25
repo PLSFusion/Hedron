@@ -47,7 +47,7 @@ contract Hedron is ERC20 {
     uint256 constant private _hdrnLoanInterestResolution = 1000000; // loan interest decimal resolution
     uint256 constant private _hdrnLoanInterestDivisor    = 2;       // relation of Hedron's interest rate to HEX's interest rate
     uint256 constant private _hdrnLoanPaymentWindow      = 30;      // how many Hedron days to roll into a single payment
-    uint256 constant private _hdrnLoanDefaultThreshold   = 90;      // how many Hedron days before loan liquidation is allowed
+    uint256 constant private _hdrnLoanDefaultThreshold   = 3;       // how many Hedron days before loan liquidation is allowed
    
     HEX                                    private _hx;
     uint256                                private _hxLaunch;
