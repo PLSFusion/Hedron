@@ -1255,6 +1255,11 @@ contract Hedron is ERC20 {
 
         // mint loaned tokens to the sender
         if (payout > 0) {
+            share._loanStart = _currentDay();
+            share._loanedDays = loanDays;
+            share._interestRate = day._dayInterestRate;
+            share._isLoaned = true;
+
             _emitLoanStart(
                 share._stake.stakeId,
                 share._stake.stakeShares,
@@ -1262,11 +1267,6 @@ contract Hedron is ERC20 {
                 share._interestRate,
                 payout
             );
-
-            share._loanStart = _currentDay();
-            share._loanedDays = loanDays;
-            share._interestRate = day._dayInterestRate;
-            share._isLoaned = true;
 
             day._dayLoanedTotal += payout;
             loanedSupply += payout;
