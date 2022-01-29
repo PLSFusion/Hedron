@@ -49,7 +49,7 @@ contract Hedron is ERC20 {
     uint256 constant private _hdrnLoanPaymentWindow      = 30;      // how many Hedron days to roll into a single payment
     uint256 constant private _hdrnLoanDefaultThreshold   = 90;      // how many Hedron days before loan liquidation is allowed
    
-    HEX                                    private _hx;
+    IHEX                                   private _hx;
     uint256                                private _hxLaunch;
     HEXStakeInstanceManager                private _hsim;
     Counters.Counter                       private _liquidationIds;
@@ -66,7 +66,7 @@ contract Hedron is ERC20 {
         ERC20("Hedron", "HDRN")
     {
         // set HEX contract address and launch time
-        _hx = HEX(payable(hexAddress));
+        _hx = IHEX(payable(hexAddress));
         _hxLaunch = hexLaunch;
 
         // initialize HEX stake instance manager

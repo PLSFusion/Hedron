@@ -6,7 +6,7 @@ import "../declarations/Internal.sol";
 
 contract HEXStakeInstance {
     
-    HEX        private _hx;
+    IHEX       private _hx;
     address    private _creator;
     address    public  whoami;
     ShareStore public  share;
@@ -21,7 +21,7 @@ contract HEXStakeInstance {
         whoami   = address(this);
 
         // set HEX contract address
-        _hx = HEX(payable(hexAddress));
+        _hx = IHEX(payable(hexAddress));
     }
 
     /**

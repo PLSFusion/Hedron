@@ -616,4 +616,20 @@ describe("Hedron", function () {
     expect(await hsim.hsiCount(addr2.address)).to.equal(1);
     expect(await hsim.hsiCount(addr1.address)).to.equal(4);
   });
+
+  it("Should external function call tests.", async function () {
+    hsiCount = await hsim.hsiCount(addr1.address);
+    stakeCount = await hsim.stakeCount(addr1.address);
+
+    expect(hsiCount).to.equal(stakeCount);
+
+    hsiAddress = await hsim.hsiLists(addr1.address, hsiCount.sub(1));
+    const HSI = await ethers.getContractFactory("HEXStakeInstance");
+    hsi = await HSI.attach(hsiAddress);
+    share = await hsi.share();
+
+    stake = await hsim.stakeLists(addr1.address, stakeCount.sub(1));
+
+    expect(stake.stakeId).to.equal(share.stake.stakeId);
+  });
 });

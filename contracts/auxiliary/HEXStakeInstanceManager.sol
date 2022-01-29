@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./HEXStakeInstance.sol";
-import "../Hedron.sol";
+import "../interfaces/Hedron.sol";
 
 import "../rarible/royalties/contracts/impl/RoyaltiesV2Impl.sol";
 import "../rarible/royalties/contracts/LibRoyaltiesV2.sol";
@@ -20,7 +20,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     
     Counters.Counter private _tokenIds;
     address          private _creator;
-    HEX              private _hx;
+    IHEX             private _hx;
     address          private _hxAddress;
 
     address                       public  whoami;
@@ -38,7 +38,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
         whoami   = address(this);
 
         // set HEX contract address
-        _hx = HEX(payable(hexAddress));
+        _hx = IHEX(payable(hexAddress));
         _hxAddress = hexAddress;
     }
 
@@ -251,7 +251,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
 
         hsi.initialize(length);
 
-        Hedron hedron = Hedron(_creator);
+        IHedron hedron = IHedron(_creator);
         hedron.claimInstanced(hsiIndex, hsiAddress, msg.sender);
 
         emit HSIStart(block.timestamp, hsiAddress, msg.sender);

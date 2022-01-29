@@ -68,8 +68,13 @@ module.exports = {
     }
   },
   abiExporter: {
+    runOnCompile: true,
     clear: true,
-    flat: true
+    flat: true,
+    only: [':Hedron$',
+           ':HEXStakeInstance$',
+           ':HEXStakeInstanceManager$'
+    ]
   },
   docgen: {
     path: './docs',
