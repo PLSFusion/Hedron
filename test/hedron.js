@@ -456,7 +456,7 @@ describe("Hedron", function () {
     await network.provider.send("evm_increaseTime", [86400])
     await ethers.provider.send('evm_mine');
   
-    await hedron.connect(addr2).loanLiquidateExit(1);
+    await hedron.connect(addr2).loanLiquidateExit(0, 1);
 
     hsiAddress4 = await hsim.hsiLists(addr2.address, 0);
     hsi2 = await HSI.attach(hsiAddress4);
@@ -530,7 +530,7 @@ describe("Hedron", function () {
     await ethers.provider.send('evm_mine');
   
     // liquidation exit should fail
-    await expect(hedron.connect(addr2).loanLiquidateExit(2))
+    await expect(hedron.connect(addr2).loanLiquidateExit(0, 2))
     .to.be.revertedWith("HDRN: Cannot exit on active liquidation");
 
     bidAmount = bidAmount.add(1000);
@@ -541,7 +541,7 @@ describe("Hedron", function () {
     await ethers.provider.send('evm_mine');
   
     // should fail
-    await expect(hedron.connect(addr2).loanLiquidateExit(2))
+    await expect(hedron.connect(addr2).loanLiquidateExit(0, 2))
     .to.be.revertedWith("HDRN: Cannot exit on active liquidation");
 
     // closer to 5 minutes
@@ -556,14 +556,14 @@ describe("Hedron", function () {
     await ethers.provider.send('evm_mine');
 
     // should still fail
-    await expect(hedron.connect(addr2).loanLiquidateExit(2))
+    await expect(hedron.connect(addr2).loanLiquidateExit(0, 2))
     .to.be.revertedWith("HDRN: Cannot exit on active liquidation");
 
     // finish it off
     await network.provider.send("evm_increaseTime", [1]);
     await ethers.provider.send('evm_mine');
 
-    await hedron.connect(addr2).loanLiquidateExit(2)
+    await hedron.connect(addr2).loanLiquidateExit(0, 2)
   });
 
   it("Should pass HSI NFT sanity checks.", async function () {

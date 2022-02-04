@@ -266,6 +266,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     /**
      * @dev Calls the HEX stake instance (HSI) function "destroy", transfers HEX ERC20 tokens
      *      from the HSI's contract address to the senders address.
+     * @param hsiIndex Index of the HSI contract's address in the caller's HSI list.
      * @param hsiAddress Address of the HSI contract in which to call the "destroy" function.
      * @return Amount of HEX ERC20 tokens awarded via ending the HEX stake.
      */
@@ -279,7 +280,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
         address[] storage hsiList = hsiLists[msg.sender];
 
         require(hsiAddress == hsiList[hsiIndex],
-            "HDRN: HSI index address mismatch");
+            "HSIM: HSI index address mismatch");
 
         HEXStakeInstance hsi = HEXStakeInstance(hsiAddress);
         ShareCache memory share = _hsiLoad(hsi);
@@ -306,6 +307,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     /**
      * @dev Converts a HEX stake instance (HSI) contract address mapping into a
      *      HSI ERC721 token.
+     * @param hsiIndex Index of the HSI contract's address in the caller's HSI list.
      * @param hsiAddress Address of the HSI contract to be converted.
      * @return Token ID of the newly minted HSI ERC721 token.
      */
@@ -319,7 +321,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
         address[] storage hsiList = hsiLists[msg.sender];
 
         require(hsiAddress == hsiList[hsiIndex],
-            "HDRN: HSI index address mismatch");
+            "HSIM: HSI index address mismatch");
 
         HEXStakeInstance hsi = HEXStakeInstance(hsiAddress);
         ShareCache memory share = _hsiLoad(hsi);
@@ -384,6 +386,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
      * @dev Updates the share data of a HEX stake instance (HSI) contract.
      *      This is a pivileged operation only Hedron.sol can call.
      * @param holder Address of the HSI contract owner.
+     * @param hsiIndex Index of the HSI contract's address in the holder's HSI list.
      * @param hsiAddress Address of the HSI contract to be updated.
      * @param share "ShareCache" object containing updated share data.
      */
@@ -401,7 +404,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
         address[] storage hsiList = hsiLists[holder];
 
         require(hsiAddress == hsiList[hsiIndex],
-            "HDRN: HSI index address mismatch");
+            "HSIM: HSI index address mismatch");
 
         HEXStakeInstance hsi = HEXStakeInstance(hsiAddress);
         hsi.update(share);
@@ -412,11 +415,13 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
      *      This is a pivileged operation only Hedron.sol can call. End users can use
      *      the NFT tokenize / detokenize to handle HSI transfers.
      * @param currentHolder Address to transfer the HSI contract from.
+     * @param hsiIndex Index of the HSI contract's address in the currentHolder's HSI list.
      * @param hsiAddress Address of the HSI contract to be transfered.
      * @param newHolder Address to transfer to HSI contract to.
      */
     function hsiTransfer (
         address currentHolder,
+        uint256 hsiIndex,
         address hsiAddress,
         address newHolder
     )
@@ -428,19 +433,18 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
         address[] storage hsiListCurrent = hsiLists[currentHolder];
         address[] storage hsiListNew = hsiLists[newHolder];
 
-        for (uint256 i = 0; i < hsiListCurrent.length; i++) {
-            if (hsiListCurrent[i] == hsiAddress) {
-                hsiListNew.push(hsiAddress);
-                _pruneHSI(hsiListCurrent, i);
+        require(hsiAddress == hsiListCurrent[hsiIndex],
+            "HSIM: HSI index address mismatch");
 
-                emit HSITransfer(
+        hsiListNew.push(hsiAddress);
+        _pruneHSI(hsiListCurrent, hsiIndex);
+
+        emit HSITransfer(
                     block.timestamp,
                     hsiAddress,
                     currentHolder,
                     newHolder
                 );
-            }
-        }
     }
 
     // External NFT Marketplace Glue

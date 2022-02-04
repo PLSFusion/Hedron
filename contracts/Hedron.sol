@@ -1569,7 +1569,7 @@ contract Hedron is ERC20 {
         _shareUpdate(shareList[share._stake.stakeId], share);
 
         // transfer ownership of the HEX stake instance to a temporary holding address
-        _hsim.hsiTransfer(owner, hsiAddress, address(0));
+        _hsim.hsiTransfer(owner, hsiIndex, hsiAddress, address(0));
 
         // create a new liquidation element
         _liquidationAdd(hsiAddress, msg.sender, (principal + interest));
@@ -1659,10 +1659,13 @@ contract Hedron is ERC20 {
     /**
      * @dev Allows any address to exit a completed liquidation, granting control of the
             HSI to the highest bidder.
+     * @param hsiIndex Index of the HSI contract address in the zero address's HSI list.
+     *                 (see hsiLists -> HEXStakeInstanceManager.sol)
      * @param liquidationId ID number of the liquidation to exit.
      * @return Address of the HEX Stake Instance (HSI) contract granted to the liquidator.
      */
     function loanLiquidateExit (
+        uint256 hsiIndex,
         uint256 liquidationId
     )
         external
@@ -1688,7 +1691,7 @@ contract Hedron is ERC20 {
             "HDRN: Cannot exit on active liquidation");
 
         // transfer the held HSI to the liquidator
-        _hsim.hsiTransfer(address(0), liquidation._hsiAddress, liquidation._liquidator);
+        _hsim.hsiTransfer(address(0), hsiIndex, liquidation._hsiAddress, liquidation._liquidator);
 
         // update the daily burnt total
         day._dayBurntTotal += liquidation._bidAmount;
