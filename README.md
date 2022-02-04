@@ -13,7 +13,6 @@ The following smart contracts are **UNLICENSED, All rights are reserved**.
 
 The following smart contracts are **MIT Licensed**. 
 
-    ./contracts/Hedron.sol
     ./contracts/interfaces/HEX.sol
     ./contracts/interfaces/Hedron.sol
     ./contracts/declarations/Internal.sol
