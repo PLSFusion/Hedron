@@ -121,7 +121,7 @@ contract Hedron is ERC20 {
 
     event LoanLiquidateStart(
         uint256         data,
-        address indexed bidder,
+        address indexed borrower,
         uint40  indexed stakeId,
         uint40  indexed liquidationId
     );
@@ -150,8 +150,8 @@ contract Hedron is ERC20 {
         private
     {
         emit Claim(
-            uint256(uint40(block.timestamp))
-                |  (uint256(uint72(stakeShares))  << 40)
+            uint256(uint40 (block.timestamp))
+                |  (uint256(uint72 (stakeShares)) << 40)
                 |  (uint256(uint144(launchBonus)) << 112),
             msg.sender,
             stakeId
@@ -159,109 +159,92 @@ contract Hedron is ERC20 {
     }
 
     function _emitMint(
-        uint40  stakeId,
-        uint256 stakeShares,
-        uint256 mintedDays,
-        uint256 launchBonus,
+        ShareCache memory share,
         uint256 payout
     )
         private
     {
         emit Mint(
-            uint256(uint40(block.timestamp))
-                |  (uint256(uint72(stakeShares)) << 40)
-                |  (uint256(uint16(mintedDays))  << 112)
-                |  (uint256(uint8(launchBonus))  << 128)
-                |  (uint256(uint120(payout))     << 136),
+            uint256(uint40 (block.timestamp))
+                |  (uint256(uint72 (share._stake.stakeShares)) << 40)
+                |  (uint256(uint16 (share._mintedDays))        << 112)
+                |  (uint256(uint8  (share._launchBonus))       << 128)
+                |  (uint256(uint120(payout))                   << 136),
             msg.sender,
-            stakeId
+            share._stake.stakeId
         );
     }
 
     function _emitLoanStart(
-        uint40  stakeId,
-        uint256 stakeShares,
-        uint256 loanedDays,
-        uint256 interestRate,
+        ShareCache memory share,
         uint256 borrowed
     )
         private
     {
         emit LoanStart(
-            uint256(uint40(block.timestamp))
-                |  (uint256(uint72(stakeShares))  << 40)
-                |  (uint256(uint16(loanedDays))   << 112)
-                |  (uint256(uint32(interestRate)) << 128)
-                |  (uint256(uint96(borrowed))     << 160),
+            uint256(uint40 (block.timestamp))
+                |  (uint256(uint72(share._stake.stakeShares)) << 40)
+                |  (uint256(uint16(share._loanedDays))        << 112)
+                |  (uint256(uint32(share._interestRate))      << 128)
+                |  (uint256(uint96(borrowed))                 << 160),
             msg.sender,
-            stakeId
+            share._stake.stakeId
         );
     }
 
     function _emitLoanPayment(
-        uint40  stakeId,
-        uint256 stakeShares,
-        uint256 loanedDays,
-        uint256 interestRate,
-        uint256 paymentsMade,
+        ShareCache memory share,
         uint256 payment
     )
         private
     {
         emit LoanPayment(
-            uint256(uint40(block.timestamp))
-                |  (uint256(uint72(stakeShares))  << 40)
-                |  (uint256(uint16(loanedDays))   << 112)
-                |  (uint256(uint32(interestRate)) << 128)
-                |  (uint256(uint8(paymentsMade))  << 160)
-                |  (uint256(uint88(payment))      << 168),
+            uint256(uint40 (block.timestamp))
+                |  (uint256(uint72(share._stake.stakeShares)) << 40)
+                |  (uint256(uint16(share._loanedDays))        << 112)
+                |  (uint256(uint32(share._interestRate))      << 128)
+                |  (uint256(uint8 (share._paymentsMade))      << 160)
+                |  (uint256(uint88(payment))                  << 168),
             msg.sender,
-            stakeId
+            share._stake.stakeId
         );
     }
 
     function _emitLoanEnd(
-        uint40  stakeId,
-        uint256 stakeShares,
-        uint256 loanedDays,
-        uint256 interestRate,
-        uint256 paymentsMade,
+        ShareCache memory share,
         uint256 payoff
     )
         private
     {
         emit LoanEnd(
-            uint256(uint40(block.timestamp))
-                |  (uint256(uint72(stakeShares))  << 40)
-                |  (uint256(uint16(loanedDays))   << 112)
-                |  (uint256(uint32(interestRate)) << 128)
-                |  (uint256(uint8(paymentsMade))  << 160)
-                |  (uint256(uint88(payoff))       << 168),
+            uint256(uint40 (block.timestamp))
+                |  (uint256(uint72(share._stake.stakeShares)) << 40)
+                |  (uint256(uint16(share._loanedDays))        << 112)
+                |  (uint256(uint32(share._interestRate))      << 128)
+                |  (uint256(uint8 (share._paymentsMade))      << 160)
+                |  (uint256(uint88(payoff))                   << 168),
             msg.sender,
-            stakeId
+            share._stake.stakeId
         );
     }
 
     function _emitLoanLiquidateStart(
-        uint40  stakeId,
+        ShareCache memory share,
         uint40  liquidationId,
-        uint256 stakeShares,
-        uint256 loanedDays,
-        uint256 interestRate,
-        uint256 paymentsMade,
+        address borrower,
         uint256 startingBid
     )
         private
     {
         emit LoanLiquidateStart(
-            uint256(uint40(block.timestamp))
-                |  (uint256(uint72(stakeShares))  << 40)
-                |  (uint256(uint16(loanedDays))   << 112)
-                |  (uint256(uint32(interestRate)) << 128)
-                |  (uint256(uint8(paymentsMade))  << 160)
-                |  (uint256(uint88(startingBid))  << 168),
-            msg.sender,
-            stakeId,
+            uint256(uint40 (block.timestamp))
+                |  (uint256(uint72(share._stake.stakeShares)) << 40)
+                |  (uint256(uint16(share._loanedDays))        << 112)
+                |  (uint256(uint32(share._interestRate))      << 128)
+                |  (uint256(uint8 (share._paymentsMade))      << 160)
+                |  (uint256(uint88(startingBid))              << 168),
+            borrower,
+            share._stake.stakeId,
             liquidationId
         );
     }
@@ -274,7 +257,7 @@ contract Hedron is ERC20 {
         private
     {
         emit LoanLiquidateBid(
-            uint256(uint40(block.timestamp))
+            uint256(uint40 (block.timestamp))
                 |  (uint256(uint216(bidAmount)) << 40),
             msg.sender,
             stakeId,
@@ -291,7 +274,7 @@ contract Hedron is ERC20 {
         private
     {
         emit LoanLiquidateExit(
-            uint256(uint40(block.timestamp))
+            uint256(uint40 (block.timestamp))
                 |  (uint256(uint216(finalBid)) << 40),
             liquidator,
             stakeId,
@@ -907,20 +890,18 @@ contract Hedron is ERC20 {
             }
         }
         
+        share._mintedDays += mintDays;
+
         // mint final payout to the sender
         if (payout > 0) {
             _mint(msg.sender, payout);
 
             _emitMint(
-                share._stake.stakeId,
-                share._stake.stakeShares,
-                servedDays,
-                share._launchBonus,
+                share,
                 payout
             );
         }
 
-        share._mintedDays += mintDays;
         day._dayMintedTotal += payout;
 
         // update HEX stake instance
@@ -1071,21 +1052,18 @@ contract Hedron is ERC20 {
                 }
             }
             
+            share._mintedDays += mintDays;
+
             // mint final payout to the sender
             if (payout > 0) {
                 _mint(msg.sender, payout);
 
                 _emitMint(
-                    share._stake.stakeId,
-                    share._stake.stakeShares,
-                    mintDays,
-                    share._launchBonus,
+                    share,
                     payout
                 );
             }
             
-            share._mintedDays += mintDays;
-
             // update existing share mapping
             _shareUpdate(shareList[shareIndex], share);
         }
@@ -1124,20 +1102,7 @@ contract Hedron is ERC20 {
                     payout += bonus;
                 }
             }
-            
-            // mint final payout to the sender
-            if (payout > 0) {
-                _mint(msg.sender, payout);
 
-                _emitMint(
-                    stake.stakeId,
-                    stake.stakeShares,
-                    servedDays,
-                    launchBonus,
-                    payout
-                );
-            }
-            
             // create a new share element for the sender
             _shareAdd(
                 HEXStakeMinimal(
@@ -1154,6 +1119,18 @@ contract Hedron is ERC20 {
                 0,
                 false
             );
+
+            _shareLoad(shareList[stake.stakeId], share);
+            
+            // mint final payout to the sender
+            if (payout > 0) {
+                _mint(msg.sender, payout);
+
+                _emitMint(
+                    share,
+                    payout
+                );
+            }
         }
 
         day._dayMintedTotal += payout;
@@ -1342,10 +1319,7 @@ contract Hedron is ERC20 {
             share._isLoaned     = true;
 
             _emitLoanStart(
-                share._stake.stakeId,
-                share._stake.stakeShares,
-                share._loanedDays,
-                share._interestRate,
+                share,
                 payout
             );
 
@@ -1421,11 +1395,7 @@ contract Hedron is ERC20 {
         share._paymentsMade++;
 
         _emitLoanPayment(
-            share._stake.stakeId,
-            share._stake.stakeShares,
-            share._loanedDays,
-            share._interestRate,
-            share._paymentsMade,
+            share,
             (principal + interest)
         );
 
@@ -1513,11 +1483,7 @@ contract Hedron is ERC20 {
             "HDRN: Insufficient balance to facilitate payoff");
 
         _emitLoanEnd(
-            share._stake.stakeId,
-            share._stake.stakeShares,
-            share._loanedDays,
-            share._interestRate,
-            share._paymentsMade,
+            share,
             (principal + interest)
         );
 
@@ -1609,12 +1575,9 @@ contract Hedron is ERC20 {
         _liquidationAdd(hsiAddress, msg.sender, (principal + interest));
 
         _emitLoanLiquidateStart(
-            share._stake.stakeId,
+            share,
             uint40(_liquidationIds.current()),
-            share._stake.stakeShares,
-            share._loanedDays,
-            share._interestRate,
-            share._paymentsMade,
+            owner,
             (principal + interest)
         );
 
