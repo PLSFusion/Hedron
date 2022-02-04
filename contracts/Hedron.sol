@@ -1734,7 +1734,7 @@ contract Hedron is ERC20 {
         uint256 currentAllowance = allowance(msg.sender, address(this));
 
         require(currentAllowance >= amount,
-            "HDRN: burn amount exceeds allowance");
+            "HDRN: Burn amount exceeds allowance");
         
         day._dayBurntTotal += amount;
         _dailyDataUpdate(dayStore, day);

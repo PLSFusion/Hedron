@@ -631,5 +631,15 @@ describe("Hedron", function () {
     stake = await hsim.stakeLists(addr1.address, stakeCount.sub(1));
 
     expect(stake.stakeId).to.equal(share.stake.stakeId);
+
+    await expect(hedron.connect(addr1).proofOfBenevolence(ethers.BigNumber.from(100))
+    ).to.be.revertedWith('HDRN: Burn amount exceeds allowance');
+
+    await hedron.connect(addr1).approve(hedron.address, ethers.BigNumber.from(100));
+    //console.log(await hedron.allowance(addr1.address, hedron.address));
+    await hedron.connect(addr1).proofOfBenevolence(ethers.BigNumber.from(100));
+
+    allowance = await hedron.allowance(addr1.address, hedron.address)
+    expect(allowance).equals(0);
   });
 });
