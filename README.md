@@ -26,7 +26,7 @@ The following smart contracts are **MIT Licensed**.
     ./contracts/rarible/royalties/contracts/impl/AbstractRoyalties.sol
 
 
-This repository provided for auditing, research, and interfacing purposes only. Copying any **UNLICENSED** smart contracts is strictly prohibited.
+This repository provided for auditing, research, and interfacing purposes only. Copying any **UNLICENSED** smart contract is strictly prohibited.
 
 
 ## Contracts of Interest
