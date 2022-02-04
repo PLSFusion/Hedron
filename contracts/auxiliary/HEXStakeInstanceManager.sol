@@ -35,7 +35,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
         /* _creator is not an admin key. It is set at contsruction to be a link
            to the parent contract. In this case Hedron */
         _creator = msg.sender;
-        whoami   = address(this);
+        whoami = address(this);
 
         // set HEX contract address
         _hx = IHEX(payable(hexAddress));
@@ -120,6 +120,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     /**
      * @dev Loads share data from a HEX stake instance (HSI) into a "ShareCache" object.
      * @param hsi A HSI contract object from which share data will be loaded.
+     * @return "ShareCache" object containing the loaded share data.
      */
     function _hsiLoad(
         HEXStakeInstance hsi
@@ -146,14 +147,16 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
          paymentsMade,
          isLoaned) = hsi.share();
 
-        return ShareCache(stake,
-                          mintedDays,
-                          launchBonus,
-                          loanStart,
-                          loanedDays,
-                          interestRate,
-                          paymentsMade,
-                          isLoaned);
+        return ShareCache(
+            stake,
+            mintedDays,
+            launchBonus,
+            loanStart,
+            loanedDays,
+            interestRate,
+            paymentsMade,
+            isLoaned
+        );
     }
 
     // Internal NFT Marketplace Glue
@@ -228,13 +231,14 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
      *      HSI's contract address, and calls the "initialize" function.
      * @param amount Number of HEX ERC20 tokens to be staked.
      * @param length Number of days the HEX ERC20 tokens will be staked.
+     * @return Address of the newly created HSI contract.
      */
     function hexStakeStart (
         uint256 amount,
         uint256 length
     )
         external
-        returns(address)
+        returns (address)
     {
         require(amount <= _hx.balanceOf(msg.sender),
             "HSIM: Insufficient HEX to facilitate stake");
@@ -263,12 +267,14 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
      * @dev Calls the HEX stake instance (HSI) function "destroy", transfers HEX ERC20 tokens
      *      from the HSI's contract address to the senders address.
      * @param hsiAddress Address of the HSI contract in which to call the "destroy" function.
+     * @return Amount of HEX ERC20 tokens awarded via ending the HEX stake.
      */
     function hexStakeEnd (
         uint256 hsiIndex,
         address hsiAddress
     )
         external
+        returns (uint256)
     {
         address[] storage hsiList = hsiLists[msg.sender];
 
@@ -293,19 +299,22 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
         }
 
         _pruneHSI(hsiList, hsiIndex);
+
+        return hsiBalance;
     }
 
     /**
      * @dev Converts a HEX stake instance (HSI) contract address mapping into a
      *      HSI ERC721 token.
      * @param hsiAddress Address of the HSI contract to be converted.
+     * @return Token ID of the newly minted HSI ERC721 token.
      */
     function hexStakeTokenize (
         uint256 hsiIndex,
         address hsiAddress
     )
         external
-        returns(uint256 tokenId)
+        returns (uint256)
     {
         address[] storage hsiList = hsiLists[msg.sender];
 
@@ -329,7 +338,12 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
 
         _pruneHSI(hsiList, hsiIndex);
 
-        emit HSITokenize(block.timestamp, newTokenId, hsiAddress, msg.sender);
+        emit HSITokenize(
+            block.timestamp,
+            newTokenId,
+            hsiAddress,
+            msg.sender
+        );
 
         return newTokenId;
     }
@@ -337,12 +351,13 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     /**
      * @dev Converts a HEX stake instance (HSI) ERC721 token into an address mapping.
      * @param tokenId ID of the HSI ERC721 token to be converted.
+     * @return Address of the detokenized HSI contract.
      */
     function hexStakeDetokenize (
         uint256 tokenId
     )
         external
-        returns(address)
+        returns (address)
     {
         require(ownerOf(tokenId) == msg.sender,
             "HSIM: Detokenization requires token ownership");
@@ -355,7 +370,12 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
 
         _burn(tokenId);
 
-        emit HSIDetokenize(block.timestamp, tokenId, hsiAddress, msg.sender);
+        emit HSIDetokenize(
+            block.timestamp,
+            tokenId, 
+            hsiAddress,
+            msg.sender
+        );
 
         return hsiAddress;
     }
@@ -413,7 +433,12 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
                 hsiListNew.push(hsiAddress);
                 _pruneHSI(hsiListCurrent, i);
 
-                emit HSITransfer(block.timestamp, hsiAddress, currentHolder, newHolder);
+                emit HSITransfer(
+                    block.timestamp,
+                    hsiAddress,
+                    currentHolder,
+                    newHolder
+                );
             }
         }
     }

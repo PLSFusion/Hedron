@@ -18,7 +18,7 @@ contract HEXStakeInstance {
         /* _creator is not an admin key. It is set at contsruction to be a link
            to the parent contract. In this case HSIM */
         _creator = msg.sender;
-        whoami   = address(this);
+        whoami = address(this);
 
         // set HEX contract address
         _hx = IHEX(payable(hexAddress));
@@ -148,7 +148,7 @@ contract HEXStakeInstance {
 
     /**
      * @dev Fetches stake data from the HEX contract.
-     * @return A HEXStake object containg the HEX stake data. 
+     * @return A "HEXStake" object containg the HEX stake data. 
      */
     function stakeDataFetch(
     ) 
@@ -173,13 +173,14 @@ contract HEXStakeInstance {
          isAutoStake
         ) = _hx.stakeLists(whoami, 0);
 
-        return HEXStake(stakeId,
-                        stakedHearts,
-                        stakeShares,
-                        lockedDay,
-                        stakedDays,
-                        unlockedDay,
-                        isAutoStake
+        return HEXStake(
+            stakeId,
+            stakedHearts,
+            stakeShares,
+            lockedDay,
+            stakedDays,
+            unlockedDay,
+            isAutoStake
         );
     }
 }

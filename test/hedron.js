@@ -49,10 +49,10 @@ describe("Hedron", function () {
     await expect(hedron.mintNative(0, 0)
     ).to.be.revertedWith("HDRN: Contract not yet active");
 
-    await expect(hedron.calcLoanPayment(0, addr1.address)
+    await expect(hedron.calcLoanPayment(addr1.address, 0, addr1.address)
     ).to.be.revertedWith("HDRN: Contract not yet active");
 
-    await expect(hedron.calcLoanPayoff(0, addr1.address)
+    await expect(hedron.calcLoanPayoff(addr1.address, 0, addr1.address)
     ).to.be.revertedWith("HDRN: Contract not yet active");
 
     await expect(hedron.loanInstanced(0, addr1.address)
@@ -376,16 +376,16 @@ describe("Hedron", function () {
     hsiAddress3 = await hsim.hsiLists(addr1.address, 3);
     stake3 = await hex.stakeLists(hsiAddress3, 0);
 
-    loanPaymentPreCalc = await hedron.calcLoanPayment(3, hsiAddress3);
+    loanPaymentPreCalc = await hedron.calcLoanPayment(addr1.address, 3, hsiAddress3);
 
     // payoff should fail here
-    await expect(hedron.connect(addr1).calcLoanPayoff(3, hsiAddress3)
+    await expect(hedron.connect(addr1).calcLoanPayoff(addr1.address, 3, hsiAddress3)
     ).to.be.revertedWith("HDRN: Cannot payoff non-existant loan");
 
     // test payments / payoffs day zero of loan
     await hedron.connect(addr1).loanInstanced(3, hsiAddress3);
-    loanPaymentPostCalc = await hedron.connect(addr1).calcLoanPayment(3, hsiAddress3);
-    loanPayoffPostCalc = await hedron.connect(addr1).calcLoanPayoff(3, hsiAddress3);
+    loanPaymentPostCalc = await hedron.connect(addr1).calcLoanPayment(addr1.address, 3, hsiAddress3);
+    loanPayoffPostCalc = await hedron.connect(addr1).calcLoanPayoff(addr1.address, 3, hsiAddress3);
 
     expect(loanPaymentPreCalc[0]).to.equal(loanPaymentPostCalc[0]);
     expect(loanPaymentPreCalc[1]).to.equal(loanPaymentPostCalc[1]);
@@ -416,7 +416,7 @@ describe("Hedron", function () {
     await network.provider.send("evm_increaseTime", [864000])
     await ethers.provider.send('evm_mine');
 
-    loanPayoffPostCalc = await hedron.connect(addr1).calcLoanPayoff(3, hsiAddress3);
+    loanPayoffPostCalc = await hedron.connect(addr1).calcLoanPayoff(addr1.address, 3, hsiAddress3);
     expect(loanPaymentPreCalc[0]).to.equal(loanPayoffPostCalc[0]);
     expect(loanPaymentPreCalc[1]).to.equal(loanPayoffPostCalc[1]);
 

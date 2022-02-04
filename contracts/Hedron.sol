@@ -5,6 +5,9 @@ pragma solidity 0.8.9;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./auxiliary/HEXStakeInstanceManager.sol";
 
+/* Hedron is a collection of Ethereum / PulseChain smart contracts that  *
+ * build upon the HEX smart contract to provide additional functionality */
+
 contract Hedron is ERC20 {
 
     using Counters for Counters.Counter;
@@ -118,7 +121,7 @@ contract Hedron is ERC20 {
 
     event LoanLiquidateStart(
         uint256         data,
-        address indexed borrower,
+        address indexed bidder,
         uint40  indexed stakeId,
         uint40  indexed liquidationId
     );
@@ -148,8 +151,8 @@ contract Hedron is ERC20 {
     {
         emit Claim(
             uint256(uint40(block.timestamp))
-                | (uint256(uint72(stakeShares))  << 40)
-                | (uint256(uint144(launchBonus)) << 112),
+                |  (uint256(uint72(stakeShares))  << 40)
+                |  (uint256(uint144(launchBonus)) << 112),
             msg.sender,
             stakeId
         );
@@ -166,10 +169,10 @@ contract Hedron is ERC20 {
     {
         emit Mint(
             uint256(uint40(block.timestamp))
-                | (uint256(uint72(stakeShares)) << 40)
-                | (uint256(uint16(mintedDays))  << 112)
-                | (uint256(uint8(launchBonus))  << 128)
-                | (uint256(uint120(payout))     << 136),
+                |  (uint256(uint72(stakeShares)) << 40)
+                |  (uint256(uint16(mintedDays))  << 112)
+                |  (uint256(uint8(launchBonus))  << 128)
+                |  (uint256(uint120(payout))     << 136),
             msg.sender,
             stakeId
         );
@@ -186,10 +189,10 @@ contract Hedron is ERC20 {
     {
         emit LoanStart(
             uint256(uint40(block.timestamp))
-                | (uint256(uint72(stakeShares))  << 40)
-                | (uint256(uint16(loanedDays))   << 112)
-                | (uint256(uint32(interestRate)) << 128)
-                | (uint256(uint96(borrowed))     << 160),
+                |  (uint256(uint72(stakeShares))  << 40)
+                |  (uint256(uint16(loanedDays))   << 112)
+                |  (uint256(uint32(interestRate)) << 128)
+                |  (uint256(uint96(borrowed))     << 160),
             msg.sender,
             stakeId
         );
@@ -207,11 +210,11 @@ contract Hedron is ERC20 {
     {
         emit LoanPayment(
             uint256(uint40(block.timestamp))
-                | (uint256(uint72(stakeShares))  << 40)
-                | (uint256(uint16(loanedDays))   << 112)
-                | (uint256(uint32(interestRate)) << 128)
-                | (uint256(uint8(paymentsMade))  << 160)
-                | (uint256(uint88(payment))      << 168),
+                |  (uint256(uint72(stakeShares))  << 40)
+                |  (uint256(uint16(loanedDays))   << 112)
+                |  (uint256(uint32(interestRate)) << 128)
+                |  (uint256(uint8(paymentsMade))  << 160)
+                |  (uint256(uint88(payment))      << 168),
             msg.sender,
             stakeId
         );
@@ -229,11 +232,11 @@ contract Hedron is ERC20 {
     {
         emit LoanEnd(
             uint256(uint40(block.timestamp))
-                | (uint256(uint72(stakeShares))  << 40)
-                | (uint256(uint16(loanedDays))   << 112)
-                | (uint256(uint32(interestRate)) << 128)
-                | (uint256(uint8(paymentsMade))  << 160)
-                | (uint256(uint88(payoff))       << 168),
+                |  (uint256(uint72(stakeShares))  << 40)
+                |  (uint256(uint16(loanedDays))   << 112)
+                |  (uint256(uint32(interestRate)) << 128)
+                |  (uint256(uint8(paymentsMade))  << 160)
+                |  (uint256(uint88(payoff))       << 168),
             msg.sender,
             stakeId
         );
@@ -252,11 +255,11 @@ contract Hedron is ERC20 {
     {
         emit LoanLiquidateStart(
             uint256(uint40(block.timestamp))
-                | (uint256(uint72(stakeShares))  << 40)
-                | (uint256(uint16(loanedDays))   << 112)
-                | (uint256(uint32(interestRate)) << 128)
-                | (uint256(uint8(paymentsMade))  << 160)
-                | (uint256(uint88(startingBid))  << 168),
+                |  (uint256(uint72(stakeShares))  << 40)
+                |  (uint256(uint16(loanedDays))   << 112)
+                |  (uint256(uint32(interestRate)) << 128)
+                |  (uint256(uint8(paymentsMade))  << 160)
+                |  (uint256(uint88(startingBid))  << 168),
             msg.sender,
             stakeId,
             liquidationId
@@ -272,7 +275,7 @@ contract Hedron is ERC20 {
     {
         emit LoanLiquidateBid(
             uint256(uint40(block.timestamp))
-                | (uint256(uint216(bidAmount)) << 40),
+                |  (uint256(uint216(bidAmount)) << 40),
             msg.sender,
             stakeId,
             liquidationId
@@ -289,7 +292,7 @@ contract Hedron is ERC20 {
     {
         emit LoanLiquidateExit(
             uint256(uint40(block.timestamp))
-                | (uint256(uint216(finalBid)) << 40),
+                |  (uint256(uint216(finalBid)) << 40),
             liquidator,
             stakeId,
             liquidationId
@@ -330,9 +333,11 @@ contract Hedron is ERC20 {
          dayStakeSharesTotal,
          dayUnclaimedSatoshisTotal) = _hx.dailyData(hexDay);
 
-        return HEXDailyData(dayPayoutTotal,
-                            dayStakeSharesTotal,
-                            dayUnclaimedSatoshisTotal);
+        return HEXDailyData(
+            dayPayoutTotal,
+            dayStakeSharesTotal,
+            dayUnclaimedSatoshisTotal
+        );
 
     }
 
@@ -345,13 +350,13 @@ contract Hedron is ERC20 {
         view
         returns (HEXGlobals memory)
     {
-        uint72 lockedHeartsTotal;
-        uint72 nextStakeSharesTotal;
-        uint40 shareRate;
-        uint72 stakePenaltyTotal;
-        uint16 dailyDataCount;
-        uint72 stakeSharesTotal;
-        uint40 latestStakeId;
+        uint72  lockedHeartsTotal;
+        uint72  nextStakeSharesTotal;
+        uint40  shareRate;
+        uint72  stakePenaltyTotal;
+        uint16  dailyDataCount;
+        uint72  stakeSharesTotal;
+        uint40  latestStakeId;
         uint128 claimStats;
 
         (lockedHeartsTotal,
@@ -363,14 +368,16 @@ contract Hedron is ERC20 {
          latestStakeId,
          claimStats) = _hx.globals();
 
-        return HEXGlobals(lockedHeartsTotal,
-                          nextStakeSharesTotal,
-                          shareRate,
-                          stakePenaltyTotal,
-                          dailyDataCount,
-                          stakeSharesTotal,
-                          latestStakeId,
-                          claimStats);
+        return HEXGlobals(
+            lockedHeartsTotal,
+            nextStakeSharesTotal,
+            shareRate,
+            stakePenaltyTotal,
+            dailyDataCount,
+            stakeSharesTotal,
+            latestStakeId,
+            claimStats
+        );
     }
 
     /**
@@ -391,7 +398,7 @@ contract Hedron is ERC20 {
         uint16 lockedDay;
         uint16 stakedDays;
         uint16 unlockedDay;
-        bool isAutoStake;
+        bool   isAutoStake;
         
         (stakeId,
          stakedHearts,
@@ -401,13 +408,15 @@ contract Hedron is ERC20 {
          unlockedDay,
          isAutoStake) = _hx.stakeLists(msg.sender, stakeIndex);
          
-         return HEXStake(stakeId,
-                      stakedHearts,
-                      stakeShares,
-                      lockedDay,
-                      stakedDays,
-                      unlockedDay,
-                      isAutoStake);
+         return HEXStake(
+            stakeId,
+            stakedHearts,
+            stakeShares,
+            lockedDay,
+            stakedDays,
+            unlockedDay,
+            isAutoStake
+        );
     }
     
     // Hedron Internal Functions
@@ -494,7 +503,7 @@ contract Hedron is ERC20 {
      */
     function _dailyDataLoad(
         DailyDataStore storage dayStore,
-        DailyDataCache memory day
+        DailyDataCache memory  day
     )
         internal
         view
@@ -506,7 +515,7 @@ contract Hedron is ERC20 {
         day._dayMintMultiplier = dayStore.dayMintMultiplier;
 
         if (day._dayInterestRate == 0) {
-            uint256             hexCurrentDay        = _hexCurrentDay();
+            uint256 hexCurrentDay = _hexCurrentDay();
 
             /* There is a very small window of time where it would be technically possible to pull
                HEX dailyData that is not yet defined. While unlikely to happen, we should prevent
@@ -537,7 +546,7 @@ contract Hedron is ERC20 {
      */
     function _dailyDataUpdate(
         DailyDataStore storage dayStore,
-        DailyDataCache memory day
+        DailyDataCache memory  day
     )
         internal
     {
@@ -561,13 +570,14 @@ contract Hedron is ERC20 {
         returns (ShareCache memory)
     {
         HEXStakeMinimal memory stake;
-        uint16                 mintedDays;
-        uint8                  launchBonus;
-        uint16                 loanStart;
-        uint16                 loanedDays;
-        uint32                 interestRate;
-        uint8                  paymentsMade;
-        bool                   isLoaned;
+
+        uint16 mintedDays;
+        uint8  launchBonus;
+        uint16 loanStart;
+        uint16 loanedDays;
+        uint32 interestRate;
+        uint8  paymentsMade;
+        bool   isLoaned;
 
         (stake,
          mintedDays,
@@ -578,14 +588,16 @@ contract Hedron is ERC20 {
          paymentsMade,
          isLoaned) = hsi.share();
 
-        return ShareCache(stake,
-                          mintedDays,
-                          launchBonus,
-                          loanStart,
-                          loanedDays,
-                          interestRate,
-                          paymentsMade,
-                          isLoaned);
+        return ShareCache(
+            stake,
+            mintedDays,
+            launchBonus,
+            loanStart,
+            loanedDays,
+            interestRate,
+            paymentsMade,
+            isLoaned
+        );
     }
 
     /**
@@ -593,11 +605,21 @@ contract Hedron is ERC20 {
      * @param stake "HEXStakeMinimal" object with which the share element is tied to.
      * @param mintedDays Amount of Hedron days the HEX stake has been minted against.
      * @param launchBonus The launch bonus multiplier of the share element.
+     * @param loanStart The Hedron day the loan was started
+     * @param loanedDays Amount of Hedron days the HEX stake has been borrowed against.
+     * @param interestRate The interest rate of the loan.
+     * @param paymentsMade Amount of payments made towards the loan.
+     * @param isLoaned Flag used to determine if the HEX stake is currently borrowed against..
      */
     function _shareAdd(
         HEXStakeMinimal memory stake,
         uint256 mintedDays,
-        uint256 launchBonus
+        uint256 launchBonus,
+        uint256 loanStart,
+        uint256 loanedDays,
+        uint256 interestRate,
+        uint256 paymentsMade,
+        bool    isLoaned
     )
         internal
     {
@@ -606,11 +628,11 @@ contract Hedron is ERC20 {
                 stake,
                 uint16(mintedDays),
                 uint8(launchBonus),
-                uint16(0),
-                uint16(0),
-                uint32(0),
-                uint8(0),
-                false
+                uint16(loanStart),
+                uint16(loanedDays),
+                uint32(interestRate),
+                uint8(paymentsMade),
+                isLoaned
             );
     }
 
@@ -631,14 +653,15 @@ contract Hedron is ERC20 {
     {
         _liquidationIds.increment();
 
-        liquidationList[_liquidationIds.current()] = LiquidationStore (
-            block.timestamp,
-            hsiAddress,
-            uint96(liquidatorBid),
-            liquidator,
-            uint88(0),
-            true
-        );
+        liquidationList[_liquidationIds.current()] =
+            LiquidationStore (
+                block.timestamp,
+                hsiAddress,
+                uint96(liquidatorBid),
+                liquidator,
+                uint88(0),
+                true
+            );
 
         return _liquidationIds.current();
     }
@@ -650,14 +673,19 @@ contract Hedron is ERC20 {
      */
     function _shareLoad(
         ShareStore storage shareStore,
-        ShareCache memory share
+        ShareCache memory  share
     )
         internal
         view
     {
-        share._stake       = shareStore.stake;
-        share._mintedDays  = shareStore.mintedDays;
-        share._launchBonus = shareStore.launchBonus;
+        share._stake        = shareStore.stake;
+        share._mintedDays   = shareStore.mintedDays;
+        share._launchBonus  = shareStore.launchBonus;
+        share._loanStart    = shareStore.loanStart;
+        share._loanedDays   = shareStore.loanedDays;
+        share._interestRate = shareStore.interestRate;
+        share._paymentsMade = shareStore.paymentsMade;
+        share._isLoaned     = shareStore.isLoaned;
     }
 
     /**
@@ -687,13 +715,18 @@ contract Hedron is ERC20 {
      */
     function _shareUpdate(
         ShareStore storage shareStore,
-        ShareCache memory share
+        ShareCache memory  share
     )
         internal
     {
-        shareStore.stake       = share._stake;
-        shareStore.mintedDays  = uint16(share._mintedDays);
-        shareStore.launchBonus = uint8(share._launchBonus);
+        shareStore.stake        = share._stake;
+        shareStore.mintedDays   = uint16(share._mintedDays);
+        shareStore.launchBonus  = uint8(share._launchBonus);
+        shareStore.loanStart    = uint16(share._loanStart);
+        shareStore.loanedDays   = uint16(share._loanedDays);
+        shareStore.interestRate = uint32(share._interestRate);
+        shareStore.paymentsMade = uint8(share._paymentsMade);
+        shareStore.isLoaned     = share._isLoaned;
     }
 
     /**
@@ -707,13 +740,11 @@ contract Hedron is ERC20 {
     ) 
         internal
     {
-
-        liquidationStore.liquidationStart = liquidation._liquidationStart;
-        liquidationStore.endOffset        = uint48(liquidation._endOffset);
-        liquidationStore.hsiAddress       = liquidation._hsiAddress;
-        liquidationStore.liquidator       = liquidation._liquidator;
-        liquidationStore.bidAmount        = uint96(liquidation._bidAmount);
-        liquidationStore.isActive         = liquidation._isActive;
+        liquidationStore.endOffset  = uint48(liquidation._endOffset);
+        liquidationStore.hsiAddress = liquidation._hsiAddress;
+        liquidationStore.liquidator = liquidation._liquidator;
+        liquidationStore.bidAmount  = uint96(liquidation._bidAmount);
+        liquidationStore.isActive   = liquidation._isActive;
     }
 
     /**
@@ -751,8 +782,9 @@ contract Hedron is ERC20 {
     // Hedron External Functions
 
     /**
-     * @dev Claims the launch phase bonus for a HEX stake instance (HSI). This is a privileged 
-     *      operation only HEXStakeInstanceManager.sol can call.
+     * @dev Claims the launch phase bonus for a HEX stake instance (HSI). It also injects
+     *      the HSI share data into into the shareList. This is a privileged  operation 
+     *      only HEXStakeInstanceManager.sol can call.
      * @param hsiIndex Index of the HSI contract address in the sender's HSI list.
      *                 (see hsiLists -> HEXStakeInstanceManager.sol)
      * @param hsiAddress Address of the HSI contract which coinsides with the index.
@@ -780,6 +812,17 @@ contract Hedron is ERC20 {
         }
 
         _hsim.hsiUpdate(hsiStarterAddress, hsiIndex, hsiAddress, share);
+
+        _shareAdd(
+            share._stake,
+            share._mintedDays,
+            share._launchBonus,
+            share._loanStart,
+            share._loanedDays,
+            share._interestRate,
+            share._paymentsMade,
+            share._isLoaned
+        );
     }
     
     /**
@@ -788,17 +831,19 @@ contract Hedron is ERC20 {
      * @param hsiIndex Index of the HSI contract address in the sender's HSI list.
      *                 (see hsiLists -> HEXStakeInstanceManager.sol)
      * @param hsiAddress Address of the HSI contract which coinsides with the index.
+     * @return Amount of HDRN ERC20 tokens minted.
      */
     function mintInstanced(
         uint256 hsiIndex,
         address hsiAddress
     ) 
         external
+        returns (uint256)
     {
         require(block.timestamp >= _hdrnLaunch,
             "HDRN: Contract not yet active");
 
-        DailyDataCache memory day;
+        DailyDataCache memory  day;
         DailyDataStore storage dayStore = dailyDataList[_currentDay()];
 
         _dailyDataLoad(dayStore, day);
@@ -865,11 +910,13 @@ contract Hedron is ERC20 {
         // mint final payout to the sender
         if (payout > 0) {
             _mint(msg.sender, payout);
-            _emitMint(share._stake.stakeId,
-                      share._stake.stakeShares,
-                      servedDays,
-                      share._launchBonus,
-                      payout
+
+            _emitMint(
+                share._stake.stakeId,
+                share._stake.stakeShares,
+                servedDays,
+                share._launchBonus,
+                payout
             );
         }
 
@@ -878,8 +925,11 @@ contract Hedron is ERC20 {
 
         // update HEX stake instance
         _hsim.hsiUpdate(msg.sender, hsiIndex, hsiAddress, share);
+        _shareUpdate(shareList[share._stake.stakeId], share);
 
         _dailyDataUpdate(dayStore, day);
+
+        return payout;
     }
     
     /**
@@ -887,12 +937,15 @@ contract Hedron is ERC20 {
      * @param stakeIndex Index of the HEX stake in sender's HEX stake list.
      *                   (see stakeLists -> HEX.sol)
      * @param stakeId ID of the HEX stake which coinsides with the index.
+     * @return Number representing the launch bonus of the claimed HEX stake
+     *         increased by a factor of 10 for decimal resolution.
      */
     function claimNative(
         uint256 stakeIndex,
         uint40  stakeId
     )
         external
+        returns (uint256)
     {
         require(block.timestamp >= _hdrnLaunch,
             "HDRN: Contract not yet active");
@@ -903,8 +956,8 @@ contract Hedron is ERC20 {
             "HDRN: HEX stake index id mismatch");
 
         bool stakeInShareList = false;
-        uint256 shareIndex = 0;
-        uint256 launchBonus = 0;
+        uint256 shareIndex    = 0;
+        uint256 launchBonus   = 0;
         
         // check if share element already exists in the sender's mapping
         (stakeInShareList,
@@ -919,14 +972,22 @@ contract Hedron is ERC20 {
         }
 
         _shareAdd(
-            HEXStakeMinimal(stake.stakeId,
-                            stake.stakeShares,
-                            stake.lockedDay,
-                            stake.stakedDays
+            HEXStakeMinimal(
+                stake.stakeId,
+                stake.stakeShares,
+                stake.lockedDay,
+                stake.stakedDays
             ),
             0,
-            launchBonus
+            launchBonus,
+            0,
+            0,
+            0,
+            0,
+            false
         );
+
+        return launchBonus;
     }
 
     /**
@@ -934,17 +995,19 @@ contract Hedron is ERC20 {
      *      HDRN Minted = HEX Stake B-Shares * (Days Served - Days Already Minted)
      * @param stakeIndex Index of the HEX stake in sender's HEX stake list (see stakeLists -> HEX.sol).
      * @param stakeId ID of the HEX stake which coinsides with the index.
+     * @return Amount of HDRN ERC20 tokens minted.
      */
     function mintNative(
         uint256 stakeIndex,
         uint40 stakeId
     )
         external
+        returns (uint256)
     {
         require(block.timestamp >= _hdrnLaunch,
             "HDRN: Contract not yet active");
 
-        DailyDataCache memory day;
+        DailyDataCache memory  day;
         DailyDataStore storage dayStore = dailyDataList[_currentDay()];
 
         _dailyDataLoad(dayStore, day);
@@ -957,11 +1020,11 @@ contract Hedron is ERC20 {
             "HDRN: cannot mint against a pending HEX stake");
         
         bool stakeInShareList = false;
-        uint256 shareIndex = 0;
-        uint256 servedDays = 0;
-        uint256 mintDays = 0;
-        uint256 payout = 0;
-        uint256 launchBonus = 0;
+        uint256 shareIndex    = 0;
+        uint256 servedDays    = 0;
+        uint256 mintDays      = 0;
+        uint256 payout        = 0;
+        uint256 launchBonus   = 0;
 
         ShareCache memory share;
         
@@ -1011,11 +1074,13 @@ contract Hedron is ERC20 {
             // mint final payout to the sender
             if (payout > 0) {
                 _mint(msg.sender, payout);
-                _emitMint(share._stake.stakeId,
-                          share._stake.stakeShares,
-                          mintDays,
-                          share._launchBonus,
-                          payout
+
+                _emitMint(
+                    share._stake.stakeId,
+                    share._stake.stakeShares,
+                    mintDays,
+                    share._launchBonus,
+                    payout
                 );
             }
             
@@ -1063,39 +1128,51 @@ contract Hedron is ERC20 {
             // mint final payout to the sender
             if (payout > 0) {
                 _mint(msg.sender, payout);
-                _emitMint(stake.stakeId,
-                          stake.stakeShares,
-                          servedDays,
-                          launchBonus,
-                          payout
+
+                _emitMint(
+                    stake.stakeId,
+                    stake.stakeShares,
+                    servedDays,
+                    launchBonus,
+                    payout
                 );
             }
             
             // create a new share element for the sender
             _shareAdd(
-                HEXStakeMinimal(stake.stakeId,
-                                stake.stakeShares,
-                                stake.lockedDay,
-                                stake.stakedDays
+                HEXStakeMinimal(
+                    stake.stakeId,
+                    stake.stakeShares, 
+                    stake.lockedDay,
+                    stake.stakedDays
                 ),
                 servedDays,
-                launchBonus
+                launchBonus,
+                0,
+                0,
+                0,
+                0,
+                false
             );
         }
 
         day._dayMintedTotal += payout;
         
         _dailyDataUpdate(dayStore, day);
+
+        return payout;
     }
 
     /**
      * @dev Calculates the payment for existing and non-existing HEX stake instance (HSI) loans.
+     * @param borrower Address which has mapped ownership the HSI contract.
      * @param hsiIndex Index of the HSI contract address in the sender's HSI list.
-    *                  (see hsiLists -> HEXStakeInstanceManager.sol)
+     *                 (see hsiLists -> HEXStakeInstanceManager.sol)
      * @param hsiAddress Address of the HSI contract which coinsides with the index.
      * @return Payment amount with principal and interest as serparate values.
      */
     function calcLoanPayment (
+        address borrower,
         uint256 hsiIndex,
         address hsiAddress
     ) 
@@ -1106,16 +1183,16 @@ contract Hedron is ERC20 {
         require(block.timestamp >= _hdrnLaunch,
             "HDRN: Contract not yet active");
 
-        DailyDataCache memory day;
+        DailyDataCache memory  day;
         DailyDataStore storage dayStore = dailyDataList[_currentDay()];
 
         _dailyDataLoad(dayStore, day);
         
-        address _hsiAddress = _hsim.hsiLists(msg.sender, hsiIndex);
+        address _hsiAddress = _hsim.hsiLists(borrower, hsiIndex);
         require(hsiAddress == _hsiAddress,
             "HDRN: HSI index address mismatch");
 
-        ShareCache   memory share         = _hsiLoad(HEXStakeInstance(hsiAddress));
+        ShareCache memory share = _hsiLoad(HEXStakeInstance(hsiAddress));
 
         uint256 loanTermPaid      = share._paymentsMade * _hdrnLoanPaymentWindow;
         uint256 loanTermRemaining = share._loanedDays - loanTermPaid;
@@ -1128,12 +1205,12 @@ contract Hedron is ERC20 {
             // remaining term is greater than a single payment window
             if (loanTermRemaining > _hdrnLoanPaymentWindow) {
                 principal = share._stake.stakeShares * _hdrnLoanPaymentWindow;
-                interest = (principal * (share._interestRate * _hdrnLoanPaymentWindow)) / _hdrnLoanInterestResolution;
+                interest  = (principal * (share._interestRate * _hdrnLoanPaymentWindow)) / _hdrnLoanInterestResolution;
             }
             // remaing term is less than or equal to a single payment window
             else {
                 principal = share._stake.stakeShares * loanTermRemaining;
-                interest = (principal * (share._interestRate * loanTermRemaining)) / _hdrnLoanInterestResolution;
+                interest  = (principal * (share._interestRate * loanTermRemaining)) / _hdrnLoanInterestResolution;
             }
         }
 
@@ -1143,12 +1220,12 @@ contract Hedron is ERC20 {
             // remaining term is greater than a single payment window
             if (share._stake.stakedDays > _hdrnLoanPaymentWindow) {
                 principal = share._stake.stakeShares * _hdrnLoanPaymentWindow;
-                interest = (principal * (day._dayInterestRate * _hdrnLoanPaymentWindow)) / _hdrnLoanInterestResolution;
+                interest  = (principal * (day._dayInterestRate * _hdrnLoanPaymentWindow)) / _hdrnLoanInterestResolution;
             }
             // remaing term is less than or equal to a single payment window
             else {
                 principal = share._stake.stakeShares * share._stake.stakedDays;
-                interest = (principal * (day._dayInterestRate * share._stake.stakedDays)) / _hdrnLoanInterestResolution;
+                interest  = (principal * (day._dayInterestRate * share._stake.stakedDays)) / _hdrnLoanInterestResolution;
             }
         }
 
@@ -1157,12 +1234,14 @@ contract Hedron is ERC20 {
 
     /**
      * @dev Calculates the full payoff for an existing HEX stake instance (HSI) loan calculating interest only up to the current Hedron day.
+     * @param borrower Address which has mapped ownership the HSI contract.
      * @param hsiIndex Index of the HSI contract address in the sender's HSI list.
      *                 (see hsiLists -> HEXStakeInstanceManager.sol)
      * @param hsiAddress Address of the HSI contract which coinsides with the index.
      * @return Payoff amount with principal and interest as separate values.
      */
     function calcLoanPayoff (
+        address borrower,
         uint256 hsiIndex,
         address hsiAddress
     ) 
@@ -1173,12 +1252,12 @@ contract Hedron is ERC20 {
         require(block.timestamp >= _hdrnLaunch,
             "HDRN: Contract not yet active");
 
-        DailyDataCache memory day;
+        DailyDataCache memory  day;
         DailyDataStore storage dayStore = dailyDataList[_currentDay()];
 
         _dailyDataLoad(dayStore, day);
 
-        address _hsiAddress = _hsim.hsiLists(msg.sender, hsiIndex);
+        address _hsiAddress = _hsim.hsiLists(borrower, hsiIndex);
 
         require(hsiAddress == _hsiAddress,
             "HDRN: HSI index address mismatch");
@@ -1195,7 +1274,7 @@ contract Hedron is ERC20 {
         uint256 interest          = 0;
         
         // user has made payments ahead of _currentDay(), no interest
-        if (_currentDay()- share._loanStart < loanTermPaid) {
+        if (_currentDay() - share._loanStart < loanTermPaid) {
             principal = share._stake.stakeShares * loanTermRemaining;
         }
 
@@ -1207,8 +1286,8 @@ contract Hedron is ERC20 {
                 outstandingDays = loanTermRemaining;
             }
 
-            principal       = share._stake.stakeShares * loanTermRemaining;
-            interest        = (principal * (share._interestRate * outstandingDays)) / _hdrnLoanInterestResolution;
+            principal = share._stake.stakeShares * loanTermRemaining;
+            interest  = ((share._stake.stakeShares * outstandingDays) * (share._interestRate * outstandingDays)) / _hdrnLoanInterestResolution;
         }
 
         return(principal, interest);
@@ -1220,17 +1299,19 @@ contract Hedron is ERC20 {
      * @param hsiIndex Index of the HSI contract address in the sender's HSI list.
      *                 (see hsiLists -> HEXStakeInstanceManager.sol)
      * @param hsiAddress Address of the HSI contract which coinsides the index.
+     * @return Amount of HDRN ERC20 tokens borrowed.
      */
     function loanInstanced (
         uint256 hsiIndex,
         address hsiAddress
     )
         external
+        returns (uint256)
     {
         require(block.timestamp >= _hdrnLaunch,
             "HDRN: Contract not yet active");
 
-        DailyDataCache memory day;
+        DailyDataCache memory  day;
         DailyDataStore storage dayStore = dailyDataList[_currentDay()];
 
         _dailyDataLoad(dayStore, day);
@@ -1240,7 +1321,7 @@ contract Hedron is ERC20 {
         require(hsiAddress == _hsiAddress,
             "HDRN: HSI index address mismatch");
 
-        ShareCache   memory share         = _hsiLoad(HEXStakeInstance(hsiAddress));
+        ShareCache memory share = _hsiLoad(HEXStakeInstance(hsiAddress));
 
         require (share._isLoaned == false,
             "HDRN: HSI loan already exists");
@@ -1255,10 +1336,10 @@ contract Hedron is ERC20 {
 
         // mint loaned tokens to the sender
         if (payout > 0) {
-            share._loanStart = _currentDay();
-            share._loanedDays = loanDays;
+            share._loanStart    = _currentDay();
+            share._loanedDays   = loanDays;
             share._interestRate = day._dayInterestRate;
-            share._isLoaned = true;
+            share._isLoaned     = true;
 
             _emitLoanStart(
                 share._stake.stakeId,
@@ -1273,11 +1354,14 @@ contract Hedron is ERC20 {
 
             // update HEX stake instance
             _hsim.hsiUpdate(msg.sender, hsiIndex, hsiAddress, share);
+            _shareUpdate(shareList[share._stake.stakeId], share);
 
             _dailyDataUpdate(dayStore, day);
 
             _mint(msg.sender, payout);
         }
+
+        return payout;
     }
 
     /**
@@ -1285,17 +1369,19 @@ contract Hedron is ERC20 {
      * @param hsiIndex Index of the HSI contract address in the sender's HSI list.
      *                 (see hsiLists -> HEXStakeInstanceManager.sol)
      * @param hsiAddress Address of the HSI contract which coinsides with the index.
+     * @return Amount of HDRN ERC20 burnt to facilitate the payment.
      */
     function loanPayment (
         uint256 hsiIndex,
         address hsiAddress
     )
         external
+        returns (uint256)
     {
         require(block.timestamp >= _hdrnLaunch,
             "HDRN: Contract not yet active");
 
-        DailyDataCache memory day;
+        DailyDataCache memory  day;
         DailyDataStore storage dayStore = dailyDataList[_currentDay()];
 
         _dailyDataLoad(dayStore, day);
@@ -1305,7 +1391,7 @@ contract Hedron is ERC20 {
         require(hsiAddress == _hsiAddress,
             "HDRN: HSI index address mismatch");
 
-        ShareCache  memory share = _hsiLoad(HEXStakeInstance(hsiAddress));
+        ShareCache memory share = _hsiLoad(HEXStakeInstance(hsiAddress));
 
         require (share._isLoaned == true,
             "HDRN: Cannot pay non-existant loan");
@@ -1319,12 +1405,12 @@ contract Hedron is ERC20 {
         // remaining term is greater than a single payment window
         if (loanTermRemaining > _hdrnLoanPaymentWindow) {
             principal = share._stake.stakeShares * _hdrnLoanPaymentWindow;
-            interest = (principal * (share._interestRate * _hdrnLoanPaymentWindow)) / _hdrnLoanInterestResolution;
+            interest  = (principal * (share._interestRate * _hdrnLoanPaymentWindow)) / _hdrnLoanInterestResolution;
         }
         // remaing term is less than or equal to a single payment window
         else {
-            principal = share._stake.stakeShares * loanTermRemaining;
-            interest = (principal * (share._interestRate * loanTermRemaining)) / _hdrnLoanInterestResolution;
+            principal   = share._stake.stakeShares * loanTermRemaining;
+            interest    = (principal * (share._interestRate * loanTermRemaining)) / _hdrnLoanInterestResolution;
             lastPayment = true;
         }
 
@@ -1344,15 +1430,16 @@ contract Hedron is ERC20 {
         );
 
         if (lastPayment == true) {
-            share._loanStart = 0;
-            share._loanedDays = 0;
+            share._loanStart    = 0;
+            share._loanedDays   = 0;
             share._interestRate = 0;
             share._paymentsMade = 0;
-            share._isLoaned = false;
+            share._isLoaned     = false;
         }
 
         // update HEX stake instance
         _hsim.hsiUpdate(msg.sender, hsiIndex, hsiAddress, share);
+        _shareUpdate(shareList[share._stake.stakeId], share);
 
         // update daily data
         day._dayBurntTotal += (principal + interest);
@@ -1363,6 +1450,8 @@ contract Hedron is ERC20 {
 
         // burn payment from the sender
         _burn(msg.sender, (principal + interest));
+
+        return(principal + interest);
     }
 
     /**
@@ -1370,17 +1459,19 @@ contract Hedron is ERC20 {
      * @param hsiIndex Index of the HSI contract address in the sender's HSI list.
      *                 (see hsiLists -> HEXStakeInstanceManager.sol)
      * @param hsiAddress Address of the HSI contract which coinsides with the index.
+     * @return Amount of HDRN ERC20 burnt to facilitate the payoff.
      */
     function loanPayoff (
         uint256 hsiIndex,
         address hsiAddress
     )
         external
+        returns (uint256)
     {
         require(block.timestamp >= _hdrnLaunch,
             "HDRN: Contract not yet active");
 
-        DailyDataCache memory day;
+        DailyDataCache memory  day;
         DailyDataStore storage dayStore = dailyDataList[_currentDay()];
 
         _dailyDataLoad(dayStore, day);
@@ -1390,7 +1481,7 @@ contract Hedron is ERC20 {
         require(hsiAddress == _hsiAddress,
             "HDRN: HSI index address mismatch");
 
-        ShareCache  memory share = _hsiLoad(HEXStakeInstance(hsiAddress));
+        ShareCache memory share = _hsiLoad(HEXStakeInstance(hsiAddress));
 
         require (share._isLoaned == true,
             "HDRN: Cannot payoff non-existant loan");
@@ -1414,8 +1505,8 @@ contract Hedron is ERC20 {
                 outstandingDays = loanTermRemaining;
             }
 
-            principal       = share._stake.stakeShares * loanTermRemaining;
-            interest        = (principal * (share._interestRate * outstandingDays)) / _hdrnLoanInterestResolution;
+            principal = share._stake.stakeShares * loanTermRemaining;
+            interest  = ((share._stake.stakeShares * outstandingDays) * (share._interestRate * outstandingDays)) / _hdrnLoanInterestResolution;
         }
 
         require (balanceOf(msg.sender) >= (principal + interest),
@@ -1430,14 +1521,15 @@ contract Hedron is ERC20 {
             (principal + interest)
         );
 
-        share._loanStart = 0;
-        share._loanedDays = 0;
+        share._loanStart    = 0;
+        share._loanedDays   = 0;
         share._interestRate = 0;
         share._paymentsMade = 0;
-        share._isLoaned = false;
+        share._isLoaned     = false;
 
         // update HEX stake instance
         _hsim.hsiUpdate(msg.sender, hsiIndex, hsiAddress, share);
+        _shareUpdate(shareList[share._stake.stakeId], share);
 
         // update daily data 
         day._dayBurntTotal += (principal + interest);
@@ -1448,6 +1540,8 @@ contract Hedron is ERC20 {
 
         // burn payment from the sender
         _burn(msg.sender, (principal + interest));
+
+        return(principal + interest);
     }
 
     /**
@@ -1456,6 +1550,7 @@ contract Hedron is ERC20 {
      * @param hsiIndex Index of the HSI contract address in the owner's HSI list.
      *                 (see hsiLists -> HEXStakeInstanceManager.sol)
      * @param hsiAddress Address of the HSI contract which coinsides with the index.
+     * @return Amount of HDRN ERC20 tokens burnt as the initial liquidation bid.
      */
     function loanLiquidate (
         address owner,
@@ -1463,6 +1558,7 @@ contract Hedron is ERC20 {
         address hsiAddress
     )
         external
+        returns (uint256)
     {
         require(block.timestamp >= _hdrnLaunch,
             "HDRN: Contract not yet active");
@@ -1472,7 +1568,7 @@ contract Hedron is ERC20 {
         require(hsiAddress == _hsiAddress,
             "HDRN: HSI index address mismatch");
 
-        ShareCache  memory share = _hsiLoad(HEXStakeInstance(hsiAddress));
+        ShareCache memory share = _hsiLoad(HEXStakeInstance(hsiAddress));
 
         require (share._isLoaned == true,
             "HDRN: Cannot liquidate a non-existant loan");
@@ -1490,20 +1586,21 @@ contract Hedron is ERC20 {
         }
 
         // only calculate interest to the current Hedron day
-        uint256 interest = (principal * (share._interestRate * outstandingDays)) / _hdrnLoanInterestResolution;
+        uint256 interest = ((share._stake.stakeShares * outstandingDays) * (share._interestRate * outstandingDays)) / _hdrnLoanInterestResolution;
 
         require (balanceOf(msg.sender) >= (principal + interest),
             "HDRN: Insufficient balance to facilitate liquidation");
 
         // zero out loan data
-        share._loanStart = 0;
-        share._loanedDays = 0;
+        share._loanStart    = 0;
+        share._loanedDays   = 0;
         share._interestRate = 0;
         share._paymentsMade = 0;
-        share._isLoaned = false;
+        share._isLoaned     = false;
 
         // update HEX stake instance
         _hsim.hsiUpdate(owner, hsiIndex, hsiAddress, share);
+        _shareUpdate(shareList[share._stake.stakeId], share);
 
         // transfer ownership of the HEX stake instance to a temporary holding address
         _hsim.hsiTransfer(owner, hsiAddress, address(0));
@@ -1511,13 +1608,14 @@ contract Hedron is ERC20 {
         // create a new liquidation element
         _liquidationAdd(hsiAddress, msg.sender, (principal + interest));
 
-        _emitLoanLiquidateStart(share._stake.stakeId,
-                                uint40(_liquidationIds.current()),
-                                share._stake.stakeShares,
-                                share._loanedDays,
-                                share._interestRate,
-                                share._paymentsMade,
-                                (principal + interest)
+        _emitLoanLiquidateStart(
+            share._stake.stakeId,
+            uint40(_liquidationIds.current()),
+            share._stake.stakeShares,
+            share._loanedDays,
+            share._interestRate,
+            share._paymentsMade,
+            (principal + interest)
         );
 
         // remove pricipal from global loaned supply
@@ -1525,25 +1623,29 @@ contract Hedron is ERC20 {
 
         // burn payment from the sender
         _burn(msg.sender, (principal + interest));
+
+        return(principal + interest);
     }
 
     /**
      * @dev Allows any address to enter a bid into an active liquidation.
      * @param liquidationId ID number of the liquidation to place the bid in.
      * @param liquidationBid Amount of HDRN to bid.
+     * @return Block timestamp of when the liquidation is currently scheduled to end.
      */
     function loanLiquidateBid (
         uint256 liquidationId,
         uint256 liquidationBid
     )
         external
+        returns (uint256)
     {
         require(block.timestamp >= _hdrnLaunch,
             "HDRN: Contract not yet active");
 
-        LiquidationStore storage liquidationStore = liquidationList[liquidationId];
         LiquidationCache memory  liquidation;
-
+        LiquidationStore storage liquidationStore = liquidationList[liquidationId];
+        
         _liquidationLoad(liquidationStore, liquidation);
 
         require(liquidation._isActive == true,
@@ -1569,35 +1671,44 @@ contract Hedron is ERC20 {
 
         // new bidder takes the liquidation position
         liquidation._liquidator = msg.sender;
-        liquidation._bidAmount = liquidationBid;
+        liquidation._bidAmount  = liquidationBid;
 
         _liquidationUpdate(liquidationStore, liquidation);
 
-        ShareCache  memory share = _hsiLoad(HEXStakeInstance(liquidation._hsiAddress));
+        ShareCache memory share = _hsiLoad(HEXStakeInstance(liquidation._hsiAddress));
 
-        _emitLoanLiquidateBid(share._stake.stakeId,
-                              uint40(liquidationId),
-                              liquidationBid
+        _emitLoanLiquidateBid(
+            share._stake.stakeId,
+            uint40(liquidationId),
+            liquidationBid
         );
 
         // burn the new bidders bid amount
         _burn(msg.sender, liquidationBid);
+
+        return(
+            liquidation._liquidationStart +
+            liquidation._endOffset +
+            86400
+        );
     }
 
     /**
      * @dev Allows any address to exit a completed liquidation, granting control of the
             HSI to the highest bidder.
      * @param liquidationId ID number of the liquidation to exit.
+     * @return Address of the HEX Stake Instance (HSI) contract granted to the liquidator.
      */
     function loanLiquidateExit (
         uint256 liquidationId
     )
         external
+        returns (address)
     {
         require(block.timestamp >= _hdrnLaunch,
             "HDRN: Contract not yet active");
 
-        DailyDataCache memory day;
+        DailyDataCache memory  day;
         DailyDataStore storage dayStore = dailyDataList[_currentDay()];
 
         _dailyDataLoad(dayStore, day);
@@ -1622,19 +1733,23 @@ contract Hedron is ERC20 {
         // deactivate liquidation, but keep data around for historical reasons.
         liquidation._isActive == false;
 
-        ShareCache  memory share = _hsiLoad(HEXStakeInstance(liquidation._hsiAddress));
+        ShareCache memory share = _hsiLoad(HEXStakeInstance(liquidation._hsiAddress));
 
-        _emitLoanLiquidateExit(share._stake.stakeId,
-                               uint40(liquidationId),
-                               liquidation._liquidator,
-                               liquidation._bidAmount);
+        _emitLoanLiquidateExit(
+            share._stake.stakeId,
+            uint40(liquidationId),
+            liquidation._liquidator,
+            liquidation._bidAmount
+        );
 
         _dailyDataUpdate(dayStore, day);
         _liquidationUpdate(liquidationStore, liquidation);
+
+        return liquidation._hsiAddress;
     }
 
     /**
-     * @dev Burns HDRN tokens, this is not to be exposed to end users.
+     * @dev Burns HDRN tokens from the caller's address.
      * @param amount Amount of HDRN to burn.
      */
     function proofOfBenevolence (
@@ -1645,7 +1760,7 @@ contract Hedron is ERC20 {
         require(block.timestamp >= _hdrnLaunch,
             "HDRN: Contract not yet active");
 
-        DailyDataCache memory day;
+        DailyDataCache memory  day;
         DailyDataStore storage dayStore = dailyDataList[_currentDay()];
 
         _dailyDataLoad(dayStore, day);
@@ -1653,8 +1768,17 @@ contract Hedron is ERC20 {
         require (balanceOf(msg.sender) >= amount,
             "HDRN: Insufficient balance to facilitate PoB");
 
+        uint256 currentAllowance = allowance(msg.sender, address(this));
+
+        require(currentAllowance >= amount,
+            "HDRN: burn amount exceeds allowance");
+        
         day._dayBurntTotal += amount;
         _dailyDataUpdate(dayStore, day);
+
+        unchecked {
+            _approve(msg.sender, address(this), currentAllowance - amount);
+        }
 
         _burn(msg.sender, amount);
     }

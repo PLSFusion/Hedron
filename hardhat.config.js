@@ -71,7 +71,8 @@ module.exports = {
     runOnCompile: true,
     clear: true,
     flat: true,
-    only: [':Hedron$',
+    only: [':HEX$',
+           ':Hedron$',
            ':HEXStakeInstance$',
            ':HEXStakeInstanceManager$'
     ]
