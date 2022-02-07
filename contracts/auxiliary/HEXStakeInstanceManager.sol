@@ -5,6 +5,7 @@ pragma solidity 0.8.9;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "./HEXStakeInstance.sol";
 import "../interfaces/Hedron.sol";
 
@@ -17,6 +18,8 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
 
     bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
     uint96 private constant _hsimRoyaltyBasis = 15; // Rarible V2 royalty basis
+    string private constant _hostname = "https://api.hedron.pro/";
+    string private constant _endpoint = "/hsi/";
     
     Counters.Counter private _tokenIds;
     address          private _creator;
@@ -50,7 +53,8 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
         override
         returns (string memory)
     {
-        return "https://hedron.pro/api/hsi/";
+        string memory chainid = Strings.toString(block.chainid);
+        return string(abi.encodePacked(_hostname, chainid, _endpoint));
     }
 
     function _beforeTokenTransfer(

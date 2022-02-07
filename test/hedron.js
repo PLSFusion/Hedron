@@ -590,6 +590,10 @@ describe("Hedron", function () {
     await expect(hsim.connect(addr1).hexStakeDetokenize(1)
     ).to.be.revertedWith("HSIM: Detokenization requires token ownership");
 
+    // test tokenURI
+    tokenURI = await hsim.tokenURI(1);
+    expect(tokenURI).equals("https://api.hedron.pro/31337/hsi/1");
+
     // transfer to addr1
     await hsim.transferFrom(addr2.address, addr1.address, 1);
 
