@@ -28,4 +28,4 @@ struct ShareCache {
 
 address constant _hdrnSourceAddress = address(0x291784Cd4eDd389a9794a4C68813d6dDe048A7c0);
 address constant _hdrnFlowAddress   = address(0x53686418B7C02B87771C789cB51A7b90864069F7);
-uint256 constant _hdrnLaunch        = 1645830000;
+uint256 constant _hdrnLaunch        = 1645833600;
