@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
 import "./HEXStakeInstance.sol";
 import "../interfaces/Hedron.sol";
 
@@ -25,6 +26,7 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     address          private _creator;
     IHEX             private _hx;
     address          private _hxAddress;
+    address          private _hsiImplementation;
 
     address                       public  whoami;
     mapping(address => address[]) public  hsiLists;
@@ -43,6 +45,13 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
         // set HEX contract address
         _hx = IHEX(payable(hexAddress));
         _hxAddress = hexAddress;
+
+        // create HSI implementation
+        _hsiImplementation = address(new HEXStakeInstance());
+        
+        // initialize the HSI just in case
+        HEXStakeInstance hsi = HEXStakeInstance(_hsiImplementation);
+        hsi.initialize(hexAddress);
     }
 
     function _baseURI(
@@ -249,15 +258,17 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
 
         address[] storage hsiList = hsiLists[msg.sender];
 
-        HEXStakeInstance hsi = new HEXStakeInstance(_hxAddress);
-        address hsiAddress = hsi.whoami();
+        address hsiAddress = Clones.clone(_hsiImplementation);
+        HEXStakeInstance hsi = HEXStakeInstance(hsiAddress);
+        hsi.initialize(_hxAddress);
+
         hsiList.push(hsiAddress);
         uint256 hsiIndex = hsiList.length - 1;
 
         require(_hx.transferFrom(msg.sender, hsiAddress, amount),
             "HSIM: HEX transfer from message sender to HSIM failed");
 
-        hsi.initialize(length);
+        hsi.create(length);
 
         IHedron hedron = IHedron(_creator);
         hedron.claimInstanced(hsiIndex, hsiAddress, msg.sender);

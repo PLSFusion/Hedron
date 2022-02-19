@@ -11,19 +11,6 @@ contract HEXStakeInstance {
     address    public  whoami;
     ShareStore public  share;
 
-    constructor(
-        address hexAddress
-    )
-    {
-        /* _creator is not an admin key. It is set at contsruction to be a link
-           to the parent contract. In this case HSIM */
-        _creator = msg.sender;
-        whoami = address(this);
-
-        // set HEX contract address
-        _hx = IHEX(payable(hexAddress));
-    }
-
     /**
      * @dev Updates the HSI's internal HEX stake data.
      */
@@ -54,13 +41,30 @@ contract HEXStakeInstance {
         share.stake.stakedDays = stakedDays;
     }
 
+    function initialize(
+        address hexAddress
+    ) 
+        external 
+    {
+        require(_creator == address(0) && whoami == address(0),
+            "HSI: Initialization already performed");
+
+        /* _creator is not an admin key. It is set at contsruction to be a link
+           to the parent contract. In this case HSIM */
+        _creator = msg.sender;
+        whoami = address(this);
+
+        // set HEX contract address
+        _hx = IHEX(payable(hexAddress));
+    }
+
     /**
      * @dev Creates a new HEX stake using all HEX ERC20 tokens assigned
      *      to the HSI's contract address. This is a privileged operation only
      *      HEXStakeInstanceManager.sol can call.
      * @param stakeLength Number of days the HEX ERC20 tokens will be staked.
      */
-    function initialize(
+    function create(
         uint256 stakeLength
     )
         external
