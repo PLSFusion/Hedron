@@ -28,7 +28,6 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
     address          private _hxAddress;
     address          private _hsiImplementation;
 
-    address                       public  whoami;
     mapping(address => address[]) public  hsiLists;
     mapping(uint256 => address)   public  hsiToken;
  
@@ -40,7 +39,6 @@ contract HEXStakeInstanceManager is ERC721, ERC721Enumerable, RoyaltiesV2Impl {
         /* _creator is not an admin key. It is set at contsruction to be a link
            to the parent contract. In this case Hedron */
         _creator = msg.sender;
-        whoami = address(this);
 
         // set HEX contract address
         _hx = IHEX(payable(hexAddress));

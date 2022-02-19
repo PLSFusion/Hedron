@@ -73,8 +73,8 @@ contract Hedron is ERC20 {
         _hxLaunch = hexLaunch;
 
         // initialize HEX stake instance manager
-        _hsim = new HEXStakeInstanceManager(hexAddress);
-        hsim = _hsim.whoami();
+        hsim = address(new HEXStakeInstanceManager(hexAddress));
+        _hsim = HEXStakeInstanceManager(hsim);
     }
 
     function decimals()
@@ -763,6 +763,18 @@ contract Hedron is ERC20 {
     }
 
     // Hedron External Functions
+
+    /**
+     * @dev Returns the current Hedron day.
+     * @return Current Hedron day
+     */
+    function currentDay()
+        external
+        view
+        returns (uint256)
+    {
+        return _currentDay();
+    }
 
     /**
      * @dev Claims the launch phase bonus for a HEX stake instance (HSI). It also injects

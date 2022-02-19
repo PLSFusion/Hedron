@@ -27,7 +27,7 @@ module.exports = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 200
+            runs: 369
           },
         },
       },
@@ -36,7 +36,7 @@ module.exports = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 200
+            runs: 369
           },
         },
       },
@@ -84,6 +84,6 @@ module.exports = {
   },
   gasReporter: {
     currency: 'USD',
-    gasPrice: '98'
+    gasPrice: '55'
   },
 };

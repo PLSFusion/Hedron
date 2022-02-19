@@ -8,7 +8,6 @@ contract HEXStakeInstance {
     
     IHEX       private _hx;
     address    private _creator;
-    address    public  whoami;
     ShareStore public  share;
 
     /**
@@ -33,7 +32,7 @@ contract HEXStakeInstance {
          stakedDays,
          unlockedDay,
          isAutoStake
-        ) = _hx.stakeLists(whoami, 0);
+        ) = _hx.stakeLists(address(this), 0);
 
         share.stake.stakeId = stakeId;
         share.stake.stakeShares = stakeShares;
@@ -46,13 +45,12 @@ contract HEXStakeInstance {
     ) 
         external 
     {
-        require(_creator == address(0) && whoami == address(0),
+        require(_creator == address(0),
             "HSI: Initialization already performed");
 
         /* _creator is not an admin key. It is set at contsruction to be a link
            to the parent contract. In this case HSIM */
         _creator = msg.sender;
-        whoami = address(this);
 
         // set HEX contract address
         _hx = IHEX(payable(hexAddress));
@@ -69,14 +67,14 @@ contract HEXStakeInstance {
     )
         external
     {
-        uint256 hexBalance = _hx.balanceOf(whoami);
+        uint256 hexBalance = _hx.balanceOf(address(this));
 
         require(msg.sender == _creator,
             "HSI: Caller must be contract creator");
         require(share.stake.stakedDays == 0,
-            "HSI: Initialization already performed");
+            "HSI: Creation already performed");
         require(hexBalance > 0,
-            "HSI: Initialization requires a non-zero HEX balance");
+            "HSI: Creation requires a non-zero HEX balance");
 
         _hx.stakeStart(
             hexBalance,
@@ -95,9 +93,9 @@ contract HEXStakeInstance {
         external
     {
         require(share.stake.stakedDays > 0,
-            "HSI: Initialization not yet performed");
+            "HSI: Creation not yet performed");
 
-        _hx.stakeGoodAccounting(whoami, 0, share.stake.stakeId);
+        _hx.stakeGoodAccounting(address(this), 0, share.stake.stakeId);
 
         _stakeDataUpdate();
     }
@@ -114,11 +112,11 @@ contract HEXStakeInstance {
         require(msg.sender == _creator,
             "HSI: Caller must be contract creator");
         require(share.stake.stakedDays > 0,
-            "HSI: Initialization not yet performed");
+            "HSI: Creation not yet performed");
 
         _hx.stakeEnd(0, share.stake.stakeId);
         
-        uint256 hexBalance = _hx.balanceOf(whoami);
+        uint256 hexBalance = _hx.balanceOf(address(this));
 
         if (_hx.approve(_creator, hexBalance)) {
             selfdestruct(payable(_creator));
@@ -175,7 +173,7 @@ contract HEXStakeInstance {
          stakedDays,
          unlockedDay,
          isAutoStake
-        ) = _hx.stakeLists(whoami, 0);
+        ) = _hx.stakeLists(address(this), 0);
 
         return HEXStake(
             stakeId,
