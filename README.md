@@ -6,8 +6,8 @@ Hedron is a collection of Ethereum / PulseChain smart contracts that build upon 
 Hedron is deployed at the following Ethereum / PulseChain addresses.
 
     Hedron.sol                  -> 0x3819f64f282bf135d62168C1e513280dAF905e06
-    HEXStakeInstance.sol        -> 0x8BD3d1472A656e312E94fB1BbdD599B8C51D18e3
-    HEXStakeInstanceManager.sol -> 0x64De999CE2FCbCf4f37AB16341de78DDF8722aD2
+    HEXStakeInstance.sol        -> 0x64De999CE2FCbCf4f37AB16341de78DDF8722aD2
+    HEXStakeInstanceManager.sol -> 0x8BD3d1472A656e312E94fB1BbdD599B8C51D18e3
 
 
 The following smart contracts are **UNLICENSED, All rights are reserved**. 
